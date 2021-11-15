@@ -5,6 +5,7 @@ library(randomForest)
 library(gbm)
 
 # data
+# https://baseballsavant.mlb.com/csv-docs
 
 # This is the data scraped below just saved on my computer
 load("~/DSCI 445/DSCI-445-Project/data2021.RData")
