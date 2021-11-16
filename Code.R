@@ -77,14 +77,14 @@ data1 = data %>% left_join(player_ids, by = c("fielder_2" = "key_mlbam")) %>%
     strike = as.factor(strike))
 
 
-# Littlestrike zone path
+# Little strike zone path
 x=c(-0.95,0.95,0.95,-0.95,-0.95)
 y=c(1.5,1.5,3.5,3.5,1.5)
 sz=data.frame(x,y)
 
 # Example model
   # Take some samples
-train = data1 %>% slice(1000:10000) 
+train = data1 %>% slice(1000:50000) 
 
 # Train initial model
 model = randomForest(strike ~ plate_x + plate_z, data = train, ntree = 1000)
@@ -104,7 +104,7 @@ grid$pred = predict(model, grid, type = "prob")[,2]
 ggplot() +
   geom_point(data = grid, aes(x = plate_x, y = plate_z, color = pred))+
   geom_path(data = sz, aes (x = x, y = y)) +
-  scale_color_manual(values = c("1" = "red", "0" = "white"))
+  scale_color_gradient(low = "white", high = "red")
 
 
 
