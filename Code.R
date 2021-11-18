@@ -4,6 +4,9 @@ library(baseballr)
 library(randomForest)
 library(gbm)
 
+#setup
+# devtools::install_github(repo = "BillPetti/baseballr")
+
 # data
 # https://baseballsavant.mlb.com/csv-docs
 
@@ -43,25 +46,28 @@ data=rbind(data1,data2,data3,data4,data5,data6,data7,data8,data9,data10, data11,
 rm(data1,data2,data3,data4,data5,data6,data7,data8,data9,data10, data11,data12,
    data13,data14,data15,data16,data17,data18,data19,data20,data21,data22,data23,data24)
 
+#save data
+save(data, file="data.Rda")
+
 # Link player IDs to their name
 playerid_lookup()
 
-player_ids = data.frame(chadwick_player_lu_table) %>%
+player_ids = data.frame(get_chadwick_lu()) %>%
   select(name_first, name_last, key_mlbam) %>%
   unite("catcher_name", name_first, name_last, sep = " ")
 
 # Get umpire names
-umpires = get_umpire_ids_petti() %>% 
-  select(id, name) %>% 
-  group_by(id, name) %>% 
-  summarize(n = n()) %>% 
-  filter(n == max(n)) %>% 
+umpires = get_umpire_ids_petti() %>%
+  select(id, name) %>%
+  group_by(id, name) %>%
+  summarize(n = n()) %>%
+  filter(n == max(n)) %>%
   select(id, name) %>%
   ungroup()
 
 umpires_game = get_umpire_ids_petti() %>% filter(position == "HP") %>%
-  select(id, position, game_pk, game_date) %>% 
-  left_join(umpires, by = c("id")) %>% 
+  select(id, position, game_pk, game_date) %>%
+  left_join(umpires, by = c("id")) %>%
   rename(umpire = name)
 
 # Unite with data
@@ -84,7 +90,7 @@ sz=data.frame(x,y)
 
 # Example model
   # Take some samples
-train = data1 %>% slice(1000:50000) 
+train = data1 %>% slice(1000:50000)
 
 # Train initial model
 model = randomForest(strike ~ plate_x + plate_z, data = train, ntree = 1000)
