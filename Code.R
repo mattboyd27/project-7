@@ -4,6 +4,9 @@ library(baseballr)
 library(randomForest)
 library(gbm)
 
+#setup
+# devtools::install_github(repo = "BillPetti/baseballr")
+
 # data
 # https://baseballsavant.mlb.com/csv-docs
 
@@ -43,25 +46,34 @@ data=rbind(data1,data2,data3,data4,data5,data6,data7,data8,data9,data10, data11,
 rm(data1,data2,data3,data4,data5,data6,data7,data8,data9,data10, data11,data12,
    data13,data14,data15,data16,data17,data18,data19,data20,data21,data22,data23,data24)
 
-# Link player IDs to their name
-playerid_lookup()
+#save data
+save(data, file="data.Rda")
 
-player_ids = data.frame(chadwick_player_lu_table) %>%
+# Link catcher IDs to their name
+player_ids = data.frame(get_chadwick_lu()) %>%
   select(name_first, name_last, key_mlbam) %>%
   unite("catcher_name", name_first, name_last, sep = " ")
 
 # Get umpire names
-umpires = get_umpire_ids_petti() %>% 
-  select(id, name) %>% 
-  group_by(id, name) %>% 
-  summarize(n = n()) %>% 
-  filter(n == max(n)) %>% 
+umpires = get_umpire_ids_petti() %>%
+  
+  # Select only the id and name of the umpire
+  select(id, name) %>%
+  
+  # Group by each individual umpire
+  group_by(id, name) %>%
+  
+  # Find the number of games each umpire was apart of
+  summarize(n = n()) %>%
+  
+  # Some umpires have multiple names so just take the ID with the most common name  
+  filter(n == max(n)) %>%
   select(id, name) %>%
   ungroup()
 
 umpires_game = get_umpire_ids_petti() %>% filter(position == "HP") %>%
-  select(id, position, game_pk, game_date) %>% 
-  left_join(umpires, by = c("id")) %>% 
+  select(id, position, game_pk, game_date) %>%
+  left_join(umpires, by = c("id")) %>%
   rename(umpire = name)
 
 # Unite with data
@@ -69,12 +81,13 @@ data1 = data %>% left_join(player_ids, by = c("fielder_2" = "key_mlbam")) %>%
   left_join(umpires_game, by = c("game_pk")) %>%
   filter(description %in% c("called_strike", "ball")) %>%
   mutate(strike = ifelse(description == "called_strike", 1, 0),
-         strike = as.factor(strike)) %>%
+         strike = as.factor(strike)) 
+
+data1  = data1 %>%
   drop_na(umpire.y) %>%
-  mutate(strike = case_when(
-    description == "called_strike" ~ 1,
-    TRUE ~ 0),
-    strike = as.factor(strike))
+  filter(balls != "4", strikes != "3") %>%
+  unite("count", balls, strikes, sep = "-") %>%
+  mutate(count = as.factor(count))
 
 
 # Little strike zone path
@@ -83,28 +96,49 @@ y=c(1.5,1.5,3.5,3.5,1.5)
 sz=data.frame(x,y)
 
 # Example model
-  # Take some samples
-train = data1 %>% slice(1000:50000) 
+# Take some samples
+train = data1 %>% slice(1000:50000)
 
 # Train initial model
-model = randomForest(strike ~ plate_x + plate_z, data = train, ntree = 1000)
+model = randomForest(strike ~ plate_x + plate_z + count, data = train, ntree = 1000)
 
 
 # Create a grid of values
-x = seq(-3, 3, length.out = 200)
-y = seq(0, 5, length.out = 200)
+grid1 = data.frame()
+x = seq(-2, 2, length.out = 150)
+y = seq(1, 5, length.out = 150)
 grid = expand.grid(plate_x = x, plate_z = y)
 
+grid1 = grid1 %>% bind_rows(data.frame(grid, count = "0-0"),
+                            data.frame(grid, count = "0-1"),
+                            data.frame(grid, count = "0-2"),
+                            data.frame(grid, count = "1-0"),
+                            data.frame(grid, count = "1-1"),
+                            data.frame(grid, count = "1-2"),
+                            data.frame(grid, count = "2-0"),
+                            data.frame(grid, count = "2-1"),
+                            data.frame(grid, count = "2-2"),
+                            data.frame(grid, count = "3-0"),
+                            data.frame(grid, count = "3-1"),
+                            data.frame(grid, count = "3-2")) %>%
+  mutate(count = as.factor(count))
+
+grid1 = grid1 %>% 
+  mutate(pred = predict(model, grid1))
+
+# Visualize strikes by the count and location
+ggplot()+
+  geom_point(data = grid1, aes(x = plate_x, y = plate_z, color = pred)) +
+  facet_wrap(~count) +
+  geom_path(data = sz, aes(x = x, y = y)) 
 
 # Predict prob
-grid$pred = predict(model, grid, type = "prob")[,2]
+grid$pred = predict(model, data1, type = "prob")[,2]
+train$pred = predict(model, train, type = "prob")[,2]
 
-
-# Visualize
-ggplot() +
-  geom_point(data = grid, aes(x = plate_x, y = plate_z, color = pred))+
-  geom_path(data = sz, aes (x = x, y = y)) +
-  scale_color_gradient(low = "white", high = "red")
+train %>% filter(strike == 1, count == "0-2") %>%
+  select(game_date.x, count, inning, catcher_name, home_team, pred) %>%
+  arrange(pred)
 
 
 
