@@ -48,14 +48,22 @@ rm(data1,data2,data3,data4,data5,data6,data7,data8,data9,data10, data11,data12,
 
 #save data
 save(data, file="data.Rda")
+<<<<<<< HEAD
 
 # Link catcher IDs to their name
+=======
+
+# Link player IDs to their name
+playerid_lookup()
+
+>>>>>>> 683701d5fd2ce772d1e2db53fa266f175be7c98d
 player_ids = data.frame(get_chadwick_lu()) %>%
   select(name_first, name_last, key_mlbam) %>%
   unite("catcher_name", name_first, name_last, sep = " ")
 
 # Get umpire names
 umpires = get_umpire_ids_petti() %>%
+<<<<<<< HEAD
   
   # Select only the id and name of the umpire
   select(id, name) %>%
@@ -67,6 +75,11 @@ umpires = get_umpire_ids_petti() %>%
   summarize(n = n()) %>%
   
   # Some umpires have multiple names so just take the ID with the most common name  
+=======
+  select(id, name) %>%
+  group_by(id, name) %>%
+  summarize(n = n()) %>%
+>>>>>>> 683701d5fd2ce772d1e2db53fa266f175be7c98d
   filter(n == max(n)) %>%
   select(id, name) %>%
   ungroup()
@@ -96,7 +109,11 @@ y=c(1.5,1.5,3.5,3.5,1.5)
 sz=data.frame(x,y)
 
 # Example model
+<<<<<<< HEAD
 # Take some samples
+=======
+  # Take some samples
+>>>>>>> 683701d5fd2ce772d1e2db53fa266f175be7c98d
 train = data1 %>% slice(1000:50000)
 
 # Train initial model
