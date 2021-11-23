@@ -7,9 +7,10 @@ library(gbm)
 #setup
 # devtools::install_github(repo = "BillPetti/baseballr")
 
-# data 
+# data description
 # https://baseballsavant.mlb.com/csv-docs
 
+# Scrape all pitches from 2021 season
 data1=scrape_statcast_savant(start_date="2021-03-28",end_date="2021-04-05",player_type="batter")
 data2=scrape_statcast_savant(start_date="2021-04-06",end_date="2021-04-13",player_type="batter")
 data3=scrape_statcast_savant(start_date="2021-04-14",end_date="2021-04-20",player_type="batter")
@@ -41,8 +42,6 @@ data=rbind(data1,data2,data3,data4,data5,data6,data7,data8,data9,data10, data11,
 rm(data1,data2,data3,data4,data5,data6,data7,data8,data9,data10, data11,data12,
    data13,data14,data15,data16,data17,data18,data19,data20,data21,data22,data23,data24)
 
-#save data
-save(data, file="data.Rda")
 
 # Link catcher IDs to their name
 player_ids = data.frame(get_chadwick_lu()) %>%
@@ -71,5 +70,6 @@ data = data %>%
   unite("count", balls, strikes, sep = "-") %>%
   mutate(count = as.factor(count))
 
+#save data
+save(data, file="Data/pitchData.Rda")
 
-write.csv(data, "Data/pitchData.csv")
