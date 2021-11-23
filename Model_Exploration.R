@@ -5,6 +5,7 @@ library(baseballr)
 library(randomForest)
 library(gbm)
 
+load("Data/pitchData.Rda")
 
 # Little strike zone path for ggplot
 x=c(-0.95,0.95,0.95,-0.95,-0.95)
