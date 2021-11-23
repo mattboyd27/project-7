@@ -7,13 +7,8 @@ library(gbm)
 #setup
 # devtools::install_github(repo = "BillPetti/baseballr")
 
-# data
+# data 
 # https://baseballsavant.mlb.com/csv-docs
-
-# This is the data scraped below just saved on my computer
-load("~/DSCI 445/DSCI-445-Project/data2021.RData")
-#
-
 
 data1=scrape_statcast_savant(start_date="2021-03-28",end_date="2021-04-05",player_type="batter")
 data2=scrape_statcast_savant(start_date="2021-04-06",end_date="2021-04-13",player_type="batter")
@@ -54,51 +49,20 @@ player_ids = data.frame(get_chadwick_lu()) %>%
   select(name_first, name_last, key_mlbam) %>%
   unite("catcher_name", name_first, name_last, sep = " ")
 
-# Get umpire names
-umpires = get_umpire_ids_petti() %>%
-  
-  # Select only the id and name of the umpire
-  select(id, name) %>%
-  
-  # Group by each individual umpire
-  group_by(id, name) %>%
-  
-  # Find the number of games each umpire was apart of
-  summarize(n = n()) %>%
-  
-  # Some umpires have multiple names so just take the ID with the most common name  
-  filter(n == max(n)) %>%
-  select(id, name) %>%
-  ungroup()
-
-#
-umpires_game = get_umpire_ids_petti() %>% 
-  # We only need the umpire behind home plate
-  filter(position == "HP") %>%
-  select(id, position, game_pk, game_date) %>%
-  
-  # join the list of umpires above so the names match
-  left_join(umpires, by = c("id")) %>%
-  rename(umpire = name)
 
 
 # Unite with data
-data1 = data %>% 
+data = data %>% 
   
   # Join the player ID data frame from above to find the catcher name
   left_join(player_ids, by = c("fielder_2" = "key_mlbam")) %>%
   
-  # Join umpires from above to find umpire name
-  left_join(umpires_game, by = c("game_pk")) %>%
-  # We onl care about a ball or a called strike
+  # We only care about a ball or a called strike
   filter(description %in% c("called_strike", "ball")) %>%
   
   # Make binary column if the pitch was a strike or not
   mutate(strike = ifelse(description == "called_strike", 1, 0),
          strike = as.factor(strike))  %>%
-  
-  # Drop all rows with no umpire joined. WE COULD GET RID OF THIS IF WE DONT CARE ABOUT UMPIRE
-  drop_na(umpire.y) %>%
   
   # Some pitches are observed to be thrown on counts with 4 balls or 3 strikes. That's an error
   filter(balls != "4", strikes != "3") %>%
@@ -106,3 +70,6 @@ data1 = data %>%
   # Combine balls and strikes to create one column
   unite("count", balls, strikes, sep = "-") %>%
   mutate(count = as.factor(count))
+
+
+write.csv(data, "Data/pitchData.csv")
