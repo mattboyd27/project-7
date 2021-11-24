@@ -16,7 +16,7 @@ sz=data.frame(x,y)
 
 # Example model
 # Take some samples to explore
-train = data1 %>% slice(1000:50000)
+train = data %>% slice(1000:50000)
 
 # Train initial model
 model = randomForest(strike ~ plate_x + plate_z + count, data = train, ntree = 1000)
@@ -43,6 +43,7 @@ grid1 = grid1 %>% bind_rows(data.frame(grid, count = "0-0"),
                             data.frame(grid, count = "3-2")) %>%
   mutate(count = as.factor(count))
 
+
 # Predict whether a pitch will be a strike or not 
 grid1 = grid1 %>% 
   mutate(pred = predict(model, grid1))
@@ -50,7 +51,7 @@ grid1 = grid1 %>%
 # Visualize strikes by the count and location
 ggplot()+
   geom_point(data = grid1, aes(x = plate_x, y = plate_z, color = pred)) +
-  facet_wrap(~count) +
+  facet_wrap(~stand) +
   geom_path(data = sz, aes(x = x, y = y)) 
 
 
