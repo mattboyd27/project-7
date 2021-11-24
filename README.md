@@ -10,7 +10,7 @@ Quantifying the best framing catcher's during the 2021 MLB season.
 ## Example
 Below are two video examples of what's going on. 
 
-The first video is a called strike for the Philidelphia Phillies catcher, J.T. Realmuto. What to look for is where the pitch is located relative to the little rectangle box, which is the electronic strike zone an umpire is supposed to make his calls off of. As you can see, the pitch is not inside of the box and theoretically should be a ball. However, it was called a strike. If you watch closely, what is noticable is how the catcher, Realmuto, presents the pitch to the umpire. He is able to convince the umpire this pitch is a strike even though it's not suppsed to be. Realmuto should be rewarded as a catcher for doing a good job.
+The first video is a called strike for the Philadelphia Phillies catcher, J.T. Realmuto. What to look for is where the pitch is located relative to the little rectangle box, which is the electronic strike zone an umpire is supposed to make his calls off of. As you can see, the pitch is not inside of the box and theoretically should be a ball. However, it was called a strike. If you watch closely, what is noticable is how the catcher, Realmuto, presents the pitch to the umpire. He is able to convince the umpire this pitch is a strike even though it's not suppsed to be. Realmuto should be rewarded as a catcher for doing a good job.
 
 https://user-images.githubusercontent.com/59383052/143179083-b97088f1-34bb-4788-9867-d9d66365e116.mp4
 
