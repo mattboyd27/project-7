@@ -5,7 +5,7 @@ Quantifying the best framing catcher's during the 2021 MLB season.
 
 ## Description
 
-"Catcher framing is the art of a catcher receiving a pitch in a way that makes it more likely for an umpire to call it a strike -- whether that's turning a borderline ball into a strike, or not losing a strike to a ball due to poor framing." - [MLB.com](mlb.com) Glossary
+"Catcher framing is the art of a catcher receiving a pitch in a way that makes it more likely for an umpire to call it a strike -- whether that's turning a borderline ball into a strike, or not losing a strike to a ball due to poor framing." - [MLB.com Glossary](https://www.mlb.com/glossary/statcast/catcher-framing#:~:text=Catcher%20framing%20is%20the%20art,ball%20due%20to%20poor%20framing.) 
 
 ## Example
 Below are two video examples of what's going on. 
