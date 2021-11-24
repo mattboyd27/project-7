@@ -14,7 +14,7 @@ The first video is a called strike for the Philadelphia Phillies catcher, J.T. R
 
 https://user-images.githubusercontent.com/59383052/143179083-b97088f1-34bb-4788-9867-d9d66365e116.mp4
 
-The opposite can also occur. In this video, Texas Rangers catcher, Jonah Heim doesn't get a called strike for a ball well within the rectangle box. This could be because, if you watch closely, Heim moves his glove very suddenly as he catches the ball. That could trick the eyes of the umpire, making him call this pitch a ball when it's clearly not a ball relative to the strike zone box. Heim should be punished for how he presented this pitch.
+The opposite can also occur. In this video, Texas Rangers catcher, Jonah Heim doesn't get a called strike for a pitch well within the rectangle box. This could be because, if you watch closely, Heim moves his glove very suddenly as he catches the pitch. That could trick the eyes of the umpire, making him call this pitch a ball when it's clearly not a ball relative to the strike zone box. Heim should be punished for how he presented this pitch.
 
 https://user-images.githubusercontent.com/59383052/143179143-7634fa08-5277-46ec-b5bc-fd8d577d098d.mp4
 
