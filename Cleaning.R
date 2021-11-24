@@ -1,8 +1,6 @@
 # Load libraries
 library(tidyverse)
 library(baseballr)
-library(randomForest)
-library(gbm)
 
 #setup
 # devtools::install_github(repo = "BillPetti/baseballr")
@@ -68,7 +66,17 @@ data = data %>%
   
   # Combine balls and strikes to create one column
   unite("count", balls, strikes, sep = "-") %>%
-  mutate(count = as.factor(count))
+  mutate(count = as.factor(count),
+         # Create less classes for each pitch type
+         pitch_type = case_when(
+           pitch_type %in% c("FF", "FA") ~"Fastball",
+           pitch_type %in% c("SI") ~ "Sinker",
+           pitch_type %in% c("CH", "FS") ~ "Changeup",
+           pitch_type %in% c("CU", "CS", "KC") ~ "Curveball",
+           pitch_type %in% c("SL") ~ "Slider",
+           pitch_type %in% c("FC") ~ "Cutter",
+           TRUE ~ NA_character_)) %>%
+  drop_na(pitch_type)
 
 #save data
 save(data, file="Data/pitchData.Rda")
