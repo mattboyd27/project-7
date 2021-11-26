@@ -66,20 +66,17 @@ train %>% filter(strike == 1, count == "0-2") %>%
 
 
 #Nathan's model
-log_reg_fit <- glm(strike ~ as.factor(pitch_type) + count + plate_x + plate_z, data=na.omit(data), family='binomial')
+log_reg_fit <- glm(strike ~ as.factor(pitch_type) + count + plate_x + plate_z, data=data, family='binomial')
 summary(log_reg_fit)
 
-raw_pred <- predict.glm(log_reg_fit, type='response')
-pred[raw_pred >= 0.4] <- 'strike'
-pred[raw_pred < 0.4] <- 'ball'
+pred <- predict.glm(log_reg_fit, type='response')
+pred[pred >= 0.4] <- 'strike'
+pred[pred < 0.4] <- 'ball'
 sum(pred=='strike')/length(pred)
 
-<<<<<<< HEAD
-table(pred=pred, true=data$strike)
-length(pred)
-length(data$strike)
-sum(is.na(data$strike))
-=======
+conf_mx <- table(pred=pred, true=data$strike)
+error <- (conf_mx[2] + conf_mx[3])/length(pred)
+
 
 # Cross validation
 data = data %>%
