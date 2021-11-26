@@ -4,6 +4,7 @@ library(tidyverse)
 library(baseballr)
 library(randomForest)
 library(gbm)
+library(caret)
 
 load("Data/pitchData.Rda")
 
@@ -73,7 +74,42 @@ pred[raw_pred >= 0.4] <- 'strike'
 pred[raw_pred < 0.4] <- 'ball'
 sum(pred=='strike')/length(pred)
 
+<<<<<<< HEAD
 table(pred=pred, true=data$strike)
 length(pred)
 length(data$strike)
 sum(is.na(data$strike))
+=======
+
+# Cross validation
+data = data %>%
+  mutate(pitch_type = as.factor(pitch_type),
+         stand = as.factor(stand),
+         p_throws = as.factor(p_throws),
+         location = ifelse(inning_topbot == "Bot", "home", "away"),
+         location = as.factor(location)) %>%
+  drop_na(sz_bot)
+
+k = 3
+folds = sample(1:k, nrow(data), replace = T)
+rf = data.frame()
+
+for(i in 1:k) {
+  print(paste("Fold = ", i))
+  train = data[folds != i, ]
+  test = data[folds == i, ]
+  
+  model = randomForest(strike ~ pitch_type + stand + p_throws + plate_x + plate_z + sz_bot + sz_top + location,
+                       data = train, nodesize = round(sqrt(8)))
+  
+  accuracy = mean(predict(model, test) == test$strike)
+  
+  rf = rf %>% 
+    bind_rows(data.frame(method = "rf", accuracy = accuracy))
+}
+
+varImp(model) %>% arrange(desc(Overall))
+
+
+  
+>>>>>>> b9ef650b98cafeacd8895b40e5dfb6a6e77e3955
