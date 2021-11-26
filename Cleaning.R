@@ -78,6 +78,10 @@ data = data %>%
            TRUE ~ NA_character_)) %>%
   drop_na(pitch_type)
 
+#Remove pitch location NAs
+data %>%
+  drop_na(plate_x, plate_z) -> data
+
 #save data
 save(data, file="Data/pitchData.Rda")
 
