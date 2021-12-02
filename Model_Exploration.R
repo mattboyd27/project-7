@@ -81,7 +81,7 @@ data = data %>%
   mutate(pitch_type = as.factor(pitch_type),
          stand = as.factor(stand),
          p_throws = as.factor(p_throws),
-         location = ifelse(inning_topbot == "Bot", "home", "away"),
+         location = ifelse(inning_topbot == "Top", "home", "away"),
          location = as.factor(location)) %>%
   drop_na(sz_bot)
 
@@ -95,7 +95,7 @@ for(i in 1:k) {
   test = data[folds == i, ]
   
   model = randomForest(strike ~ pitch_type + stand + p_throws + plate_x + plate_z + sz_bot + sz_top + location,
-                       data = train, nodesize = round(sqrt(8)))
+                       data = train, mtry = round(sqrt(8)))
   
   accuracy = mean(predict(model, test) == test$strike)
   
@@ -105,5 +105,29 @@ for(i in 1:k) {
 
 varImp(model) %>% arrange(desc(Overall))
 
-
-  
+# mean(as.numeric(as.character(data$strike)))
+# 
+# data = data %>%
+#   mutate(strike_prob = predict(model, data, type = "prob")[,2])
+#   
+# data = data %>%
+#   mutate(credit = case_when(
+#     strike == 1 ~ 1 - strike_prob,
+#     strike == 0 ~ strike_prob * -1),
+#     credit2 = credit - mean(credit))
+# 
+# data %>%
+#   group_by(catcher_name) %>%
+#   summarize(strikes = sum(credit2),
+#             n = n(),
+#             strike_100 = strikes / (n/100)) %>%
+#   filter(n > 2000) %>%
+#   arrange(strikes)
+# 
+# ggplot() +
+#   geom_histogram(aes(x = train$credit2))
+# 
+# data %>%
+#   filter(strike == 1) %>%
+#   select(game_date, count, inning, catcher_name, home_team, release_speed,strike_prob) %>%
+#   arrange(strike_prob)
