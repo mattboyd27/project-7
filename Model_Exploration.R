@@ -84,13 +84,7 @@ regsubsets(strike ~ ., data=usable_data)
 
 
 # Cross validation
-data = data %>%
-  mutate(pitch_type = as.factor(pitch_type),
-         stand = as.factor(stand),
-         p_throws = as.factor(p_throws),
-         location = ifelse(inning_topbot == "Top", "home", "away"),
-         location = as.factor(location)) %>%
-  drop_na(sz_bot)
+
 
 k = 3
 folds = sample(1:k, nrow(data), replace = T)

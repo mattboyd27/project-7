@@ -75,15 +75,15 @@ data = data %>%
            pitch_type %in% c("CU", "CS", "KC") ~ "Curveball",
            pitch_type %in% c("SL") ~ "Slider",
            pitch_type %in% c("FC") ~ "Cutter",
-           TRUE ~ NA_character_)) %>%
+           TRUE ~ NA_character_),
+         location = ifelse(inning_topbot == "Top", "home", "away")) %>%
   drop_na(pitch_type)
+
 
 #Remove pitch location NAs
 data %>%
   drop_na(plate_x, plate_z) -> data
 
-#save data
-save(data, file="Data/pitchData.Rda")
 
 good_cols <-  c('strike', 'pitch_type', 'stand', 'p_throws', 'plate_x', 'plate_z', 'sz_bot', 'sz_top', 
                 'location', 'release_speed', 'release_pos_x', 'release_pos_z', 'count', 'pfx_x', 'pfx_z',
@@ -92,8 +92,11 @@ good_cols <-  c('strike', 'pitch_type', 'stand', 'p_throws', 'plate_x', 'plate_z
 usable_data <- data[ , names(data) %in% good_cols]
 str(usable_data)
 
-factors <- c('pitch_type', 'stand', 'p_throws')
-usable_data %>% mutate_at(factors, as.factor) -> usable_data
+factors <- c('pitch_type', 'stand', 'p_throws', 'location', 'outs_when_up', 'inning')
+usable_data %>% 
+  mutate_at(factors, as.factor) %>%
+  filter(complete.cases(usable_data))-> usable_data
+
 
 #save as better_data, called usable_data
 save(usable_data, file='Data/usable_data.Rda')
