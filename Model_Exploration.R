@@ -77,6 +77,11 @@ sum(pred=='strike')/length(pred)
 conf_mx <- table(pred=pred, true=data$strike)
 error <- (conf_mx[2] + conf_mx[3])/length(pred)
 
+#Best subset selection
+library(leaps)
+regsubsets(strike ~ ., data=usable_data)
+
+
 
 # Cross validation
 data = data %>%
@@ -109,4 +114,4 @@ varImp(model) %>% arrange(desc(Overall))
 
 
   
->>>>>>> b9ef650b98cafeacd8895b40e5dfb6a6e77e3955
+
