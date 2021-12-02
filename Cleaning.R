@@ -85,28 +85,16 @@ data %>%
 #save data
 save(data, file="Data/pitchData.Rda")
 
-#Remove irrelevant columns
-bad_cols <- c('game_date', 'player_name', 'batter', 'pitcher', 'events', 'description', 'spin_dir', 
-              'spin_rate_deprecated', 'break_angle_deprecated', 'break_length_deprecated', 'des', 
-              'hit_location', 'bb_type', 'on_3b', 'on_2b', 'on_1b', 'hc_x', 'hc_y', 'tfs_deprecated', 
-              'tfs_zulu_deprecated', 'umpire', 'sv_id', 'hit_distance_sc', 'launch_speed', 'launch_angle', 
-              'estimated_ba_using_speedangle', 'estimated_woba_using_speedangle', 'woba_value','woba_denom', 
-              'babip_value', 'iso_value', 'launch_speed_angle', 'pitch_name', 'type')
-usable_data <- data[ , !(names(data) %in% bad_cols)]
-usable_data[,'pitch_type'] <- as.factor(usable_data[,'pitch_type'])
-usable_data[,'zone'] <- as.factor(usable_data[,'zone'])
-usable_data[,'game_type'] <- as.factor(usable_data[,'game_type'])
-usable_data[,'stand'] <- as.factor(usable_data[,'stand'])
-usable_data[,'p_throws'] <- as.factor(usable_data[,'p_throws'])
-usable_data[,'pitch_type'] <- as.factor(usable_data[,'pitch_type'])
-usable_data[,'home_team'] <- as.factor(usable_data[,'home_team'])
-usable_data[,'away_team'] <- as.factor(usable_data[,'away_team'])
-usable_data[,'game_year'] <- as.factor(usable_data[,'game_year'])
-usable_data[,'pitch_type'] <- as.factor(usable_data[,'pitch_type'])
-usable_data[,'outs_when_up'] <- as.factor(usable_data[,'outs_when_up'])
-usable_data[,'inning'] <- as.factor(usable_data[,'inning'])
-usable_data[,'inning_topbot'] <- as.factor(usable_data[,'inning_topbot'])
+good_cols <-  c('strike', 'pitch_type', 'stand', 'p_throws', 'plate_x', 'plate_z', 'sz_bot', 'sz_top', 
+                'location', 'release_speed', 'release_pos_x', 'release_pos_z', 'count', 'pfx_x', 'pfx_z',
+                'outs_when_up', 'inning', 'release_spin', 'release_pos_y')
 
-#save as better_data
-save(usable_data, file='Data/better_data.Rda')
+usable_data <- data[ , names(data) %in% good_cols]
+str(usable_data)
+
+factors <- c('pitch_type', 'stand', 'p_throws')
+usable_data %>% mutate_at(factors, as.factor) -> usable_data
+
+#save as better_data, called usable_data
+save(usable_data, file='Data/usable_data.Rda')
 
