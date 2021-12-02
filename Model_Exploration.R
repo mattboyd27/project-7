@@ -6,7 +6,7 @@ library(randomForest)
 library(gbm)
 library(caret)
 
-load("Data/pitchData.Rda")
+load("Data/usable_data.Rda")
 
 # Little strike zone path for ggplot
 x=c(-0.95,0.95,0.95,-0.95,-0.95)
