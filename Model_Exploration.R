@@ -69,11 +69,18 @@ train %>% filter(strike == 1, count == "0-2") %>%
 log_reg_fit <- glm(strike ~ as.factor(pitch_type) + count + plate_x + plate_z, data=data, family='binomial')
 summary(log_reg_fit)
 
-raw_pred <- predict.glm(log_reg_fit, type='response')
-pred[raw_pred >= 0.4] <- 'strike'
-pred[raw_pred < 0.4] <- 'ball'
+pred <- predict.glm(log_reg_fit, type='response')
+pred[pred >= 0.4] <- 'strike'
+pred[pred < 0.4] <- 'ball'
 sum(pred=='strike')/length(pred)
-raw_pred
+
+conf_mx <- table(pred=pred, true=data$strike)
+error <- (conf_mx[2] + conf_mx[3])/length(pred)
+
+#Best subset selection
+library(leaps)
+regsubsets(strike ~ ., data=usable_data)
+
 
 
 # Cross validation
@@ -105,6 +112,7 @@ for(i in 1:k) {
 
 varImp(model) %>% arrange(desc(Overall))
 
+
 # mean(as.numeric(as.character(data$strike)))
 # 
 # data = data %>%
@@ -131,3 +139,4 @@ varImp(model) %>% arrange(desc(Overall))
 #   filter(strike == 1) %>%
 #   select(game_date, count, inning, catcher_name, home_team, release_speed,strike_prob) %>%
 #   arrange(strike_prob)
+

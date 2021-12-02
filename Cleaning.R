@@ -78,6 +78,35 @@ data = data %>%
            TRUE ~ NA_character_)) %>%
   drop_na(pitch_type)
 
+#Remove pitch location NAs
+data %>%
+  drop_na(plate_x, plate_z) -> data
+
 #save data
 save(data, file="Data/pitchData.Rda")
+
+#Remove irrelevant columns
+bad_cols <- c('game_date', 'player_name', 'batter', 'pitcher', 'events', 'description', 'spin_dir', 
+              'spin_rate_deprecated', 'break_angle_deprecated', 'break_length_deprecated', 'des', 
+              'hit_location', 'bb_type', 'on_3b', 'on_2b', 'on_1b', 'hc_x', 'hc_y', 'tfs_deprecated', 
+              'tfs_zulu_deprecated', 'umpire', 'sv_id', 'hit_distance_sc', 'launch_speed', 'launch_angle', 
+              'estimated_ba_using_speedangle', 'estimated_woba_using_speedangle', 'woba_value','woba_denom', 
+              'babip_value', 'iso_value', 'launch_speed_angle', 'pitch_name', 'type')
+usable_data <- data[ , !(names(data) %in% bad_cols)]
+usable_data[,'pitch_type'] <- as.factor(usable_data[,'pitch_type'])
+usable_data[,'zone'] <- as.factor(usable_data[,'zone'])
+usable_data[,'game_type'] <- as.factor(usable_data[,'game_type'])
+usable_data[,'stand'] <- as.factor(usable_data[,'stand'])
+usable_data[,'p_throws'] <- as.factor(usable_data[,'p_throws'])
+usable_data[,'pitch_type'] <- as.factor(usable_data[,'pitch_type'])
+usable_data[,'home_team'] <- as.factor(usable_data[,'home_team'])
+usable_data[,'away_team'] <- as.factor(usable_data[,'away_team'])
+usable_data[,'game_year'] <- as.factor(usable_data[,'game_year'])
+usable_data[,'pitch_type'] <- as.factor(usable_data[,'pitch_type'])
+usable_data[,'outs_when_up'] <- as.factor(usable_data[,'outs_when_up'])
+usable_data[,'inning'] <- as.factor(usable_data[,'inning'])
+usable_data[,'inning_topbot'] <- as.factor(usable_data[,'inning_topbot'])
+
+#save as better_data
+save(usable_data, file='Data/better_data.Rda')
 
