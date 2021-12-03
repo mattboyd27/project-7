@@ -87,15 +87,16 @@ data %>%
 
 good_cols <-  c('strike', 'pitch_type', 'stand', 'p_throws', 'plate_x', 'plate_z', 'sz_bot', 'sz_top', 
                 'location', 'release_speed', 'release_pos_x', 'release_pos_z', 'count', 'pfx_x', 'pfx_z',
-                'outs_when_up', 'inning', 'release_spin', 'release_pos_y')
+                'outs_when_up', 'inning', 'release_spin', 'release_pos_y', 'catcher_name')
 
 usable_data <- data[ , names(data) %in% good_cols]
 str(usable_data)
 
 factors <- c('pitch_type', 'stand', 'p_throws', 'location', 'outs_when_up', 'inning')
+
 usable_data %>% 
   mutate_at(factors, as.factor) %>%
-  filter(complete.cases(usable_data))-> usable_data
+  filter(complete.cases(usable_data)) -> usable_data
 
 
 #save as better_data, called usable_data

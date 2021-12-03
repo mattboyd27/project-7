@@ -6,8 +6,12 @@ library(randomForest)
 library(gbm)
 library(caret)
 
+# https://baseballsavant.mlb.com/catcher_framing?year=2021&team=&min=q&sort=4,1
+
 load("Data/usable_data.Rda")
 
+
+load("Data/pitchData,Rda")
 # Little strike zone path for ggplot
 x=c(-0.95,0.95,0.95,-0.95,-0.95)
 y=c(1.5,1.5,3.5,3.5,1.5)
@@ -87,13 +91,13 @@ regsubsets(strike ~ ., data=usable_data)
 
 
 k = 3
-folds = sample(1:k, nrow(data), replace = T)
+folds = sample(1:k, nrow(usable_data), replace = T)
 rf = data.frame()
 
 for(i in 1:k) {
   print(paste("Fold = ", i))
-  train = data[folds != i, ]
-  test = data[folds == i, ]
+  train = usable_data[folds != i, ]
+  test = usable_data[folds == i, ]
   
   model = randomForest(strike ~ pitch_type + stand + p_throws + plate_x + plate_z + sz_bot + sz_top + location,
                        data = train, mtry = round(sqrt(8)))
@@ -107,30 +111,41 @@ for(i in 1:k) {
 varImp(model) %>% arrange(desc(Overall))
 
 
-# mean(as.numeric(as.character(data$strike)))
-# 
-# data = data %>%
-#   mutate(strike_prob = predict(model, data, type = "prob")[,2])
-#   
-# data = data %>%
-#   mutate(credit = case_when(
-#     strike == 1 ~ 1 - strike_prob,
-#     strike == 0 ~ strike_prob * -1),
-#     credit2 = credit - mean(credit))
-# 
-# data %>%
-#   group_by(catcher_name) %>%
-#   summarize(strikes = sum(credit2),
-#             n = n(),
-#             strike_100 = strikes / (n/100)) %>%
-#   filter(n > 2000) %>%
-#   arrange(strikes)
-# 
-# ggplot() +
-#   geom_histogram(aes(x = train$credit2))
-# 
-# data %>%
-#   filter(strike == 1) %>%
-#   select(game_date, count, inning, catcher_name, home_team, release_speed,strike_prob) %>%
-#   arrange(strike_prob)
+mean(as.numeric(as.character(data$strike)))
+
+usable_data = usable_data %>%
+  mutate(strike_prob = predict(model, usable_data, type = "prob")[,2],
+         predicted_strike = predict(model, usable_data),
+         strike = as.numeric(as.character(strike)),
+         predicted_strike = as.numeric(as.character(predicted_strike)))
+
+usable_data = usable_data %>%
+  mutate(credit = case_when(
+    strike == 1 ~ 1 - strike_prob,
+    strike == 0 ~ strike_prob * -1),
+    credit2 = credit - mean(credit))
+
+usable_data %>%
+  group_by(catcher_name) %>%
+  summarize(total =  sum(strike) / sum(predicted_strike), 
+            n = n()) %>%
+  arrange(desc(total))
+  
+  
+
+usable_data %>%
+  group_by(catcher_name) %>%
+  summarize(strikes = sum(credit),
+            n = n(),
+            strike_100 = strikes / (n/100)) %>%
+  filter(n > 2000) %>%
+  arrange(strikes)
+
+ggplot() +
+  geom_histogram(aes(x = usable_data$credit))
+
+data %>%
+  filter(strike == 1) %>%
+  select(game_date, count, inning, catcher_name, home_team, release_speed,strike_prob) %>%
+  arrange(strike_prob)
 
