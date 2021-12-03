@@ -12,6 +12,7 @@ load("Data/usable_data.Rda")
 
 
 load("Data/pitchData,Rda")
+
 # Little strike zone path for ggplot
 x=c(-0.95,0.95,0.95,-0.95,-0.95)
 y=c(1.5,1.5,3.5,3.5,1.5)
@@ -136,17 +137,26 @@ usable_data %>%
 
 usable_data %>%
   group_by(catcher_name) %>%
-  summarize(strikes = sum(credit),
+  summarize(strikes = sum(credit2),
             n = n(),
             strike_100 = strikes / (n/100)) %>%
   filter(n > 2000) %>%
-  arrange(strikes)
+  arrange(-strike_100)
 
 ggplot() +
   geom_histogram(aes(x = usable_data$credit))
 
-data %>%
-  filter(strike == 1) %>%
-  select(game_date, count, inning, catcher_name, home_team, release_speed,strike_prob) %>%
-  arrange(strike_prob)
+
+factors <- c('pitch_type', 'stand', 'p_throws', 'location', 'outs_when_up', 'inning')
+
+
+data = data %>%
+  mutate_at(factors, as.factor) %>%
+  drop_na(plate_x)
+data  = data %>%
+  mutate(strike_prob = predict(model, data, type = "prob")[,2])
+  
+data %>% filter(strike == 0) %>%
+  select(game_date, count, inning, catcher_name, home_team, release_speed, strike_prob) %>%
+  arrange(desc(strike_prob))
 
