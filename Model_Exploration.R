@@ -96,11 +96,12 @@ rf = data.frame()
 
 for(i in 1:k) {
   print(paste("Fold = ", i))
-  train = usable_data[folds != i, ]
-  test = usable_data[folds == i, ]
+  train = usable_data[folds != i, ] %>%
+    select(-catcher_name)
+  test = usable_data[folds == i, ] %>%
+    select(-catcher_name)
   
-  model = randomForest(strike ~ pitch_type + stand + p_throws + plate_x + plate_z + sz_bot + sz_top + location,
-                       data = train, mtry = round(sqrt(8)))
+  model = randomForest(strike ~ ., data = train, mtry = round(sqrt(8)))
   
   accuracy = mean(predict(model, test) == test$strike)
   

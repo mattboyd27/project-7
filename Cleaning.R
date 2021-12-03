@@ -79,6 +79,8 @@ data = data %>%
          location = ifelse(inning_topbot == "Top", "home", "away")) %>%
   drop_na(pitch_type)
 
+# Save data
+save(data, file = "Data/pitchData.Rda")
 
 #Remove pitch location NAs
 data %>%
@@ -87,7 +89,7 @@ data %>%
 
 good_cols <-  c('strike', 'pitch_type', 'stand', 'p_throws', 'plate_x', 'plate_z', 'sz_bot', 'sz_top', 
                 'location', 'release_speed', 'release_pos_x', 'release_pos_z', 'count', 'pfx_x', 'pfx_z',
-                'outs_when_up', 'inning', 'release_spin', 'release_pos_y', 'catcher_name')
+                'outs_when_up', 'inning', 'release_spin_rate', 'release_pos_y', 'catcher_name')
 
 usable_data <- data[ , names(data) %in% good_cols]
 str(usable_data)
