@@ -49,15 +49,15 @@ grid1 = grid1 %>% bind_rows(data.frame(grid, count = "0-0"),
   mutate(count = as.factor(count))
 
 
-# Predict whether a pitch will be a strike or not 
-grid1 = grid1 %>% 
+# Predict whether a pitch will be a strike or not
+grid1 = grid1 %>%
   mutate(pred = predict(model, grid1))
 
 # Visualize strikes by the count and location
 ggplot()+
   geom_point(data = grid1, aes(x = plate_x, y = plate_z, color = pred)) +
   facet_wrap(~stand) +
-  geom_path(data = sz, aes(x = x, y = y)) 
+  geom_path(data = sz, aes(x = x, y = y))
 
 
 # Find the pitch that is called a strike with the lowest probability. Among observations we trained model on
@@ -83,7 +83,7 @@ error <- (conf_mx[2] + conf_mx[3])/length(pred)
 
 #Best subset selection
 library(leaps)
-regsubsets(strike ~ ., data=usable_data)
+
 
 
 
@@ -100,12 +100,12 @@ for(i in 1:k) {
     select(-catcher_name)
   test = usable_data[folds == i, ] %>%
     select(-catcher_name)
-  
+
   model = randomForest(strike ~ ., data = train, mtry = round(sqrt(8)))
-  
+
   accuracy = mean(predict(model, test) == test$strike)
-  
-  rf = rf %>% 
+
+  rf = rf %>%
     bind_rows(data.frame(method = "rf", accuracy = accuracy))
 }
 
@@ -128,11 +128,11 @@ usable_data = usable_data %>%
 
 usable_data %>%
   group_by(catcher_name) %>%
-  summarize(total =  sum(strike) / sum(predicted_strike), 
+  summarize(total =  sum(strike) / sum(predicted_strike),
             n = n()) %>%
   arrange(desc(total))
-  
-  
+
+
 
 usable_data %>%
   group_by(catcher_name) %>%
