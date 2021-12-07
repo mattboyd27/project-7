@@ -102,7 +102,6 @@ lambda_choice <- cv_ridge$lambda.min
 
 #Get predictions
 ridge_predict <- predict(ridge_reg_fit, s = lambda_choice, newx = x[test, ], type = 'class')
-ridge_predict
 
 #Confusion matrix
 ridge_conf_mx <- table(pred=ridge_predict, true=y[test])
@@ -110,10 +109,23 @@ ridge_conf_mx
 error <- (ridge_conf_mx[2] + ridge_conf_mx[3])/length(ridge_predict)
 error
 
+#LASSO
+lasso_fit <- glmnet(x[train, ], y[train], alpha = 1, lambda = lambda, family = 'binomial')
+cv_lasso <- cv.glmnet(x[train, ], y[train], alpha = 1, family='binomial')
+plot(cv_lasso)
 
+#Lambda choice
+lasso_lam <- cv_lasso$lambda.min
 
+#Get predictions
+lasso_predict <- predict(lasso_fit, s = lasso_lam, newx = x[test, ], type = 'class')
+lasso_predict
 
-
+#Confusion matrix
+lasso_mx <- table(pred=lasso_predict, true=y[test])
+lasso_mx
+error <- (lasso_mx[2] + lasso_mx[3])/length(lasso_predict)
+error
 
 
 # Cross validation
