@@ -82,8 +82,36 @@ sum(pred=='strike')/length(pred)
 conf_mx <- table(pred=pred, true=data$strike)
 error <- (conf_mx[2] + conf_mx[3])/length(pred)
 
-#Best subset selection
-library(leaps)
+#Ridge Regression
+library(glmnet)
+
+x <- model.matrix(strike ~ ., data = usable_data)[,-1]
+y <- usable_data$strike
+
+lambda <- seq(0.001, 10, length=100)
+
+#Create training and test data set
+train <- sample(1:nrow(x), nrow(x)/2)
+test <- (-train)
+ridge_reg_fit <-  glmnet(x[train,], y[train], alpha = 0, lambda = lambda, family='binomial')
+
+#Choose lambda
+cv_ridge <- cv.glmnet(x[train, ], y[train], alpha=0, family='binomial')
+plot(cv_ridge)
+lambda_choice <- cv_ridge$lambda.min
+
+#Get predictions
+ridge_predict <- predict(ridge_reg_fit, s = lambda_choice, newx = x[test, ], type = 'class')
+ridge_predict
+
+#Confusion matrix
+ridge_conf_mx <- table(pred=ridge_predict, true=y[test])
+ridge_conf_mx
+error <- (ridge_conf_mx[2] + ridge_conf_mx[3])/length(ridge_predict)
+error
+
+
+
 
 
 
@@ -155,7 +183,7 @@ data = data %>%
   drop_na(plate_x)
 data  = data %>%
   mutate(strike_prob = predict(model, data, type = "prob")[,2])
-  
+
 data %>% filter(strike == 0) %>%
   select(game_date, count, inning, catcher_name, home_team, release_speed, strike_prob) %>%
   arrange(desc(strike_prob))
