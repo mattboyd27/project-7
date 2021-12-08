@@ -163,10 +163,10 @@ for(i in 1:k){
 # 5.7 hours
 total_time = proc.time() - time
 
-
+save(df_gbm_final, file = "Model-Outputs/boosting.Rda")
 
 options(pillar.sigfig = 7)
-df_gbm %>%
+df_gbm_final = df_gbm %>%
   group_by(interaction_depth, lambda) %>%
   summarize(accuracy = mean(accuracy)) %>%
   arrange(desc(accuracy))
@@ -176,5 +176,6 @@ df = bind_rows(df_rf %>% rename(parameter = nodesize),
   group_by(model, parameter) %>%
   summarise(accuracy = round(mean(accuracy), 7))%>%
   arrange(desc(accuracy)) 
+
 
 
