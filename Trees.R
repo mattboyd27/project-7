@@ -115,4 +115,66 @@ varImp(model_rf) %>% arrange(desc(Overall))
 #   select(game_date, count, inning, catcher_name, home_team, release_speed, strike_prob) %>%
 #   arrange(desc(strike_prob))
 
+
 # perform Boosting
+data = data %>%
+  mutate(strike = as.character(strike))
+test = usable_data[-vector, ] %>%
+  mutate(strike = as.character(strike))
+
+
+boosting = gbm(strike ~ ., data = data, distribution = "bernoulli")
+
+mean(as.numeric(test$strike) == (predict(boosting, test, type = "response") >= 0.5))
+
+k = 3
+folds = sample(1:k, nrow(usable_data), replace = T)
+
+df_gbm = data.frame()
+
+usable_data = usable_data %>%
+  mutate(strike = as.character(strike))
+
+time = proc.time()
+for(i in 1:k){
+  print(paste("k =",i))
+  
+  train = usable_data[folds != i, ] %>%
+    select(-catcher_name)
+  
+  test = usable_data[folds == i, ] %>%
+    select(-catcher_name)
+  
+  for(d in seq(6, 16, 5)){
+    print(paste("interaction =", d))
+    for(lambda in c(0.1, 0.01, 0.001)) {
+      print(paste("lambda =", lambda))
+      boosting = gbm(strike ~ ., data = train, distribution = "bernoulli", 
+                     interaction.depth = d,
+                     n.trees = 500, shrinkage = lambda)
+      gbm = mean(as.numeric(test$strike) == (predict(boosting, test, type = "response") >= 0.5))
+      
+      df_gbm = df_gbm %>%
+        bind_rows(data.frame(model = "boosting", accuracy = gbm, interaction_depth = d, lambda = lambda))
+    }
+  }
+}
+
+# 5.7 hours
+total_time = proc.time() - time
+
+
+
+options(pillar.sigfig = 7)
+df_gbm %>%
+  group_by(interaction_depth, lambda) %>%
+  summarize(accuracy = mean(accuracy)) %>%
+  arrange(desc(accuracy))
+
+df = bind_rows(df_rf %>% rename(parameter = nodesize),
+               df_gbm %>% rename(parameter = interaction_depth)) %>%
+  group_by(model, parameter) %>%
+  summarise(accuracy = round(mean(accuracy), 7))%>%
+  arrange(desc(accuracy)) 
+
+
