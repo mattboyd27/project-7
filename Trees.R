@@ -163,7 +163,8 @@ for(i in 1:k){
 # 5.7 hours
 total_time = proc.time() - time
 
-save(df_gbm_final, file = "Model-Outputs/boosting.Rda")
+save(df_gbm_final, file = "Model-Outputs/boosting.rda")
+save(df_rf, file = "Model-Outputs/random-forest.Rda")
 
 options(pillar.sigfig = 7)
 df_gbm_final = df_gbm %>%
