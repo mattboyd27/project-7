@@ -1,13 +1,90 @@
-\frametitle{Example}
-\protect\hypertarget{example}{}
-\begin{itemize}
-\tightlist
-\item
-  Strike Probability by Location and Count
-\end{itemize}
+\frametitle{Logistic Regression Model}
+\protect\hypertarget{logistic-regression-model}{}
+\tiny
 
 \begin{verbatim}
-## Using 200 trees...
+##
+## Call:
+## glm(formula = strike ~ ., family = "binomial", data = data_no_catchers[train,
+##     ])
+##
+## Deviance Residuals:
+##     Min       1Q   Median       3Q      Max
+## -1.6091  -0.9918  -0.6061   1.2274   2.4843
+##
+## Coefficients:
+##                       Estimate Std. Error z value Pr(>|z|)
+## (Intercept)          1.865e+00  6.897e-01   2.705 0.006835 **
+## pitch_typeCurveball  4.188e-01  3.862e-02  10.845  < 2e-16 ***
+## pitch_typeCutter     2.829e-01  3.182e-02   8.890  < 2e-16 ***
+## pitch_typeFastball   4.249e-01  2.865e-02  14.829  < 2e-16 ***
+## pitch_typeSinker     6.128e-01  2.705e-02  22.652  < 2e-16 ***
+## pitch_typeSlider     3.491e-01  2.818e-02  12.392  < 2e-16 ***
+## release_speed       -1.018e-02  1.791e-03  -5.682 1.33e-08 ***
+## release_pos_x        8.904e-03  7.481e-03   1.190 0.233984
+## release_pos_z       -3.874e-02  1.075e-02  -3.604 0.000313 ***
+## standR               7.218e-02  1.150e-02   6.275 3.50e-10 ***
+## p_throwsR            3.429e-02  3.134e-02   1.094 0.273856
+## count0-1            -9.788e-01  1.820e-02 -53.783  < 2e-16 ***
+## count0-2            -2.091e+00  3.570e-02 -58.585  < 2e-16 ***
+## count1-0            -1.136e-01  1.686e-02  -6.741 1.57e-11 ***
+## count1-1            -7.870e-01  2.007e-02 -39.217  < 2e-16 ***
+## count1-2            -1.835e+00  2.916e-02 -62.922  < 2e-16 ***
+## count2-0             6.662e-02  2.597e-02   2.565 0.010309 *
+## count2-1            -5.223e-01  2.608e-02 -20.029  < 2e-16 ***
+## count2-2            -1.481e+00  3.003e-02 -49.318  < 2e-16 ***
+## count3-0             7.445e-01  3.688e-02  20.183  < 2e-16 ***
+## count3-1            -2.489e-01  3.656e-02  -6.809 9.85e-12 ***
+## count3-2            -1.045e+00  3.694e-02 -28.281  < 2e-16 ***
+## pfx_x               -2.131e-03  7.356e-03  -0.290 0.771989
+## pfx_z                2.260e-02  1.539e-02   1.468 0.142011
+## plate_x             -3.683e-02  5.906e-03  -6.235 4.51e-10 ***
+## plate_z              3.866e-02  5.403e-03   7.156 8.33e-13 ***
+## outs_when_up1       -3.561e-02  1.294e-02  -2.751 0.005937 **
+## outs_when_up2       -4.545e-02  1.306e-02  -3.479 0.000504 ***
+## inning2              5.993e-02  2.193e-02   2.732 0.006292 **
+## inning3              3.871e-02  2.201e-02   1.759 0.078613 .
+## inning4             -4.207e-02  2.238e-02  -1.880 0.060174 .
+## inning5             -2.470e-02  2.223e-02  -1.111 0.266515
+## inning6             -8.320e-02  2.225e-02  -3.740 0.000184 ***
+## inning7             -6.640e-02  2.227e-02  -2.982 0.002868 **
+## inning8             -7.824e-02  2.238e-02  -3.495 0.000474 ***
+## inning9             -4.430e-02  2.454e-02  -1.805 0.071009 .
+## inning10            -2.985e-01  6.456e-02  -4.623 3.77e-06 ***
+## inning11            -3.250e-01  1.132e-01  -2.871 0.004092 **
+## inning12            -1.087e-01  2.170e-01  -0.501 0.616489
+## inning13             7.175e-02  3.941e-01   0.182 0.855523
+## inning14             1.881e+00  9.587e-01   1.962 0.049764 *
+## inning15            -9.811e-01  7.985e-01  -1.229 0.219190
+## inning16             4.107e-01  6.547e-01   0.627 0.530425
+## sz_top               1.794e-01  4.122e-02   4.351 1.36e-05 ***
+## sz_bot              -5.601e-01  7.513e-02  -7.455 9.00e-14 ***
+## release_spin_rate    1.896e-04  2.329e-05   8.142 3.90e-16 ***
+## release_pos_y       -2.993e-02  1.234e-02  -2.426 0.015265 *
+## locationhome         4.201e-02  1.071e-02   3.924 8.72e-05 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+##
+## (Dispersion parameter for binomial family taken to be 1)
+##
+##     Null deviance: 223255  on 175944  degrees of freedom
+## Residual deviance: 205574  on 175897  degrees of freedom
+## AIC: 205670
+##
+## Number of Fisher Scoring iterations: 4
 \end{verbatim}
 
-\includegraphics{Slides_files/figure-beamer/cars-1.pdf}
+\begin{verbatim}
+## [1] 0.06387755
+\end{verbatim}
+
+\begin{verbatim}
+##         true
+## pred          0      1
+##   ball   112462  52245
+##   strike   5489   5750
+\end{verbatim}
+
+\begin{verbatim}
+## [1] 0.3281348
+\end{verbatim}
