@@ -24,7 +24,7 @@ knitr::opts_chunk$set(echo = FALSE)
 - Baseball teams are aware of this and are acquiring players good at this skill to win more games
 - We want to quantify the best catcher's at framing for the 2021 season
 - There are several factors that influence whether a pitch will be a strike or ball
-- Catchers getting more strikes translates to more outs, and fewer points for the opposing team
+- Catchers getting more strikes translates to more outs, and fewer runs for the opposing team
 
 ## Data
 
@@ -132,10 +132,10 @@ error
 
 ## Random Forest
 
-- 3 Fold Cross Validation on Random Forest  
-  - Tested on nodesizes of 10, 30, 50, 70, 90 | 500 trees
+- Tested several Random Forest models
+  - Nodesize: 10, 30, 50, 70, 90 | # of Trees: 500
   - Compared Out-Of-Bag Error 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.width=7, fig.height=3}
 load("Data/pitchData.Rda")
 load("Model-Outputs/random-forest.Rda")
 
@@ -154,7 +154,14 @@ ggplot(df_rf, aes(x = nodesize, y = accuracy))+
 
 ## Boosting
 
-```{r, echo=FALSE}
+- 3 Fold Cross Validation on Boosting
+  - Interaction depth: 6, 11, 16 
+  - Shrinkage: 0.1, 0.01, 0.001 
+  - Number of Trees: 500
+  - Compared CV accuracy
+- 27 models took over 5 hours to run
+  
+```{r, echo=FALSE, fig.width=6, fig.height=2.5}
 load("Model-Outputs/boosting.Rda")
 
 ggplot(df_gbm_final, aes(x = interaction_depth, y = accuracy, color = as.character(lambda))) +
@@ -165,5 +172,25 @@ ggplot(df_gbm_final, aes(x = interaction_depth, y = accuracy, color = as.charact
   labs(x = "Accuracy", y = "Interactin Depth",
        color = "Shrinkage",
        y = "Boosting Accuracy by Interaction Depth and Shrinkage")
+```
+
+
+## Boosting Part 2
+
+- Only tuned shrinkage and interaction depth
+- Now tune trees with interaction depth of 16 and shrinkage of 0.1
+
+```{r}
+load("Model-Outputs/boosting2.Rda")
+final_df_gbm %>%
+  group_by(trees) %>%
+  summarize(accuracy = mean(accuracy)) %>%
+  arrange(desc(accuracy)) %>%
+  ggplot(aes(x = trees, y = accuracy)) +
+  geom_line(color = "goldenrod") +
+  theme_minimal() +
+  labs(x = "Number of Trees",
+       y = "Accuracy",
+       title = "Boosting Accuracy by # of Trees")
 ```
 
