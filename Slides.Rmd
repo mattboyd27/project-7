@@ -135,7 +135,7 @@ error
 - 3 Fold Cross Validation on Random Forest  
   - Tested on nodesizes of 10, 30, 50, 70, 90 | 500 trees
   - Compared Out-Of-Bag Error 
-```{r}
+```{r, echo=FALSE}
 load("Data/pitchData.Rda")
 load("Model-Outputs/random-forest.Rda")
 
@@ -149,5 +149,21 @@ ggplot(df_rf, aes(x = nodesize, y = accuracy))+
        y = "Accuracy",
        title = "Random Forest OOB Accuracy by Nodesize") +
   theme_minimal()
+```
+
+
+## Boosting
+
+```{r, echo=FALSE}
+load("Model-Outputs/boosting.Rda")
+
+ggplot(df_gbm_final, aes(x = interaction_depth, y = accuracy, color = as.character(lambda))) +
+  geom_line() +
+  theme_minimal()+
+  geom_point() +
+  geom_point(aes(x = 16, y = 0.935), color = "red") +
+  labs(x = "Accuracy", y = "Interactin Depth",
+       color = "Shrinkage",
+       y = "Boosting Accuracy by Interaction Depth and Shrinkage")
 ```
 

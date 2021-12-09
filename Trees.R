@@ -108,7 +108,12 @@ load("Model-Outputs/boosting.Rda")
 
 ggplot(df_gbm_final, aes(x = interaction_depth, y = accuracy, color = as.character(lambda))) +
   geom_line() +
-  theme_minimal()
+  theme_minimal()+
+  geom_point() +
+  geom_point(aes(x = 16, y = 0.935), color = "red") +
+  labs(x = "Accuracy", y = "Interactin Depth (d)",
+       color = "Shrinkage",
+       y = "Boosting Accuracy by Interaction Depth and Shrinkage")
 
 
  # save(df_gbm_final, file = "Model-Outputs/boosting.Rda")
