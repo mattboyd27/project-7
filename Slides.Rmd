@@ -135,7 +135,7 @@ error
 - Tested several Random Forest models
   - Nodesize: 10, 30, 50, 70, 90 | # of Trees: 500
   - Compared Out-Of-Bag Error 
-```{r, echo=FALSE, fig.width=7, fig.height=3}
+```{r, echo=FALSE, fig.width=7, fig.height=4}
 load("Data/pitchData.Rda")
 load("Model-Outputs/random-forest.Rda")
 
@@ -171,7 +171,7 @@ ggplot(df_gbm_final, aes(x = interaction_depth, y = accuracy, color = as.charact
   geom_point(aes(x = 16, y = 0.935), color = "red") +
   labs(x = "Accuracy", y = "Interactin Depth",
        color = "Shrinkage",
-       y = "Boosting Accuracy by Interaction Depth and Shrinkage")
+       title = "Boosting Accuracy by Interaction Depth and Shrinkage")
 ```
 
 
@@ -179,8 +179,9 @@ ggplot(df_gbm_final, aes(x = interaction_depth, y = accuracy, color = as.charact
 
 - Only tuned shrinkage and interaction depth
 - Now tune trees with interaction depth of 16 and shrinkage of 0.1
+- Trees: 300, 500, 600, 900, 1200
 
-```{r}
+```{r,  fig.width=6, fig.height=3.2}
 load("Model-Outputs/boosting2.Rda")
 final_df_gbm %>%
   group_by(trees) %>%
