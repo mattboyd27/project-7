@@ -202,9 +202,9 @@ data = data %>%
   mutate(strike_prob = predict(final_model, data, type = "response"),
          strike = as.numeric(as.character(strike)))
 
-data %>% filter(strike == 1, game_date != "2021-08-22") %>%
+data %>% filter(strike == 2, game_date != "2021-08-22", grepl("-2",count)) %>%
   select(game_date, count, inning, catcher_name, home_team, release_speed, strike_prob, strike) %>%
-  arrange(desc(strike_prob))
+  arrange(strike_prob)
 
 
 # Combine all models
