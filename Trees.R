@@ -61,13 +61,17 @@ for(i in seq(10, 90, 20)) {
 }
 proc.time() - time
 
+# save(df_rf, file = "Model-Outputs/random-forest.Rda")
+load("Model-Outputs/random-forest.Rda")
+
 ggplot(df_rf, aes(x = nodesize, y = accuracy))+
   geom_line() +
   geom_point() +
   ylim(0.925, 0.935)
 
 
-varImp(model_rf) %>% arrange(desc(Overall))
+varImp(model_rf) %>% 
+  arrange(desc(Overall))
 
 
 
@@ -115,12 +119,15 @@ df_gbm_final = df_gbm %>%
   summarize(accuracy = mean(accuracy)) %>%
   arrange(desc(accuracy))
 
+load("Model-Outputs/boosting.Rda")
+
 ggplot(df_gbm_final, aes(x = interaction_depth, y = accuracy, color = as.character(lambda))) +
-  geom_line()
+  geom_line() +
+  theme_minimal()
 
 
-save(df_gbm_final, file = "Model-Outputs/boosting.Rda")
-save(df_rf, file = "Model-Outputs/random-forest.Rda")
+ # save(df_gbm_final, file = "Model-Outputs/boosting.Rda")
+
 
 
 # Trees CV
@@ -158,14 +165,17 @@ for(i in 1:k){
 }
 total_time2 = proc.time() - time
 
+
 # Add boosting with 500 trees
+load("Model-Outputs/boosting2.Rda")
+
 final_df_gbm = final_df_gbm %>% 
   bind_rows(df_gbm %>%
               filter(interaction_depth == 16, lambda == 0.1) %>%
               mutate(trees = 500) %>%
               select(model, accuracy, trees))
 
-save(final_df_gbm, file = "Model-Outputs/boosting2.Rda")
+# save(final_df_gbm, file = "Model-Outputs/boosting2.Rda")
 
 final_df_gbm %>%
   group_by(trees) %>%
@@ -179,7 +189,6 @@ final_df_gbm %>%
        title = "Boosting Accuracy by # of Trees")
 
 
-save(final_df_gbm, file = "Model-Outputs/boosting2.Rda")
 
 
 # Final model
@@ -197,12 +206,14 @@ final_model = gbm(strike ~ ., distribution = "bernoulli",
                   interaction.depth = 16,
                   n.trees = 500, shrinkage = 0.1, data = data1)
 
+
+
 # Find video examples
 data = data %>%
   mutate(strike_prob = predict(final_model, data, type = "response"),
          strike = as.numeric(as.character(strike)))
 
-data %>% filter(strike == 2, game_date != "2021-08-22", grepl("-2",count)) %>%
+data %>% filter(strike == 2, game_date != "2021-08-22") %>%
   select(game_date, count, inning, catcher_name, home_team, release_speed, strike_prob, strike) %>%
   arrange(strike_prob)
 
@@ -228,34 +239,24 @@ data = data %>%
     strike == 0 ~ strike_prob * -1),
     credit2 = credit - mean(credit))
 
+# Leader board
 data %>%
   group_by(catcher_name) %>%
-  summarize(total =  sum(strike) / sum(predicted_strike),
-            n = n()) %>%
-  arrange(desc(total))
-
-
+  summarize(strikes_above_avg = sum(credit),
+            pitches_caught = n(),
+            strikes_aa_100 = strikes_above_avg / (pitches_caught / 100)) %>%
+  filter(pitches_caught > 2000) %>%
+  arrange(desc(strikes_above_avg))
 
 data %>%
   group_by(catcher_name) %>%
-  summarize(strikes = sum(credit),
-            n = n(),
-            strike_100 = strikes / (n/100)) %>%
+  summarize(strikes_above_avg = sum(credit),
+            pitches_caught = n(),
+            strike_100 = strikes_above_avg / (n/100)) %>%
   filter(n > 2000) %>%
-  arrange(desc(strike_100))
-
-ggplot() +
-  geom_histogram(aes(x = usable_data$credit))
+  arrange(strikes_above_avg)
 
 
-factors <- c('pitch_type', 'stand', 'p_throws', 'location', 'outs_when_up', 'inning')
-
-
-data = data %>%
-  mutate_at(factors, as.factor) %>%
-  drop_na(plate_x)
-data  = data %>%
-  mutate(strike_prob = predict(model, data, type = "prob")[,2])
 
 
 
