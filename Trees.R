@@ -46,7 +46,13 @@ load("Model-Outputs/random-forest.Rda")
 ggplot(df_rf, aes(x = nodesize, y = accuracy))+
   geom_line() +
   geom_point() +
-  ylim(0.925, 0.935)
+  geom_point(data = df_rf %>% 
+               filter(accuracy == max(accuracy)), aes(x = nodesize, y = accuracy), color = "red") +
+  ylim(0.925, 0.935) +
+  labs(x = "Nodesize",
+       y = "Accuracy",
+       title = "Random Forest OOB Accuracy by Nodesize") +
+  theme_minimal()
 
 
 varImp(model_rf) %>% 

@@ -9,6 +9,7 @@ output:
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(gbm)
+library(randomForest)
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
@@ -127,3 +128,26 @@ error <- (conf_mx[2] + conf_mx[3])/length(pred)
 conf_mx
 error
 ```
+
+
+## Random Forest
+
+- 3 Fold Cross Validation on Random Forest  
+  - Tested on nodesizes of 10, 30, 50, 70, 90 | 500 trees
+  - Compared Out-Of-Bag Error 
+```{r}
+load("Data/pitchData.Rda")
+load("Model-Outputs/random-forest.Rda")
+
+ggplot(df_rf, aes(x = nodesize, y = accuracy))+
+  geom_line() +
+  geom_point() +
+  geom_point(data = df_rf %>% 
+               filter(accuracy == max(accuracy)), aes(x = nodesize, y = accuracy), color = "red") +
+  ylim(0.925, 0.935) +
+  labs(x = "Nodesize",
+       y = "Accuracy",
+       title = "Random Forest OOB Accuracy by Nodesize") +
+  theme_minimal()
+```
+
