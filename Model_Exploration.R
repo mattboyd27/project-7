@@ -71,22 +71,31 @@ train %>% filter(strike == 1, count == "0-2") %>%
 
 
 #Nathan's model
-log_reg_fit <- glm(strike ~ as.factor(pitch_type) + count + plate_x + plate_z, data=data, family='binomial')
+
+data_no_catchers <- usable_data[, -18]
+
+train <- sample(1:nrow(data_no_catchers), nrow(data_no_catchers)/2)
+test <- (-train)
+
+log_reg_fit <- glm(strike ~ ., data=data_no_catchers[train, ], family='binomial')
 summary(log_reg_fit)
 
-pred <- predict.glm(log_reg_fit, type='response')
-pred[pred >= 0.4] <- 'strike'
-pred[pred < 0.4] <- 'ball'
+pred <- predict.glm(log_reg_fit, type='response', newdata = data_no_catchers[test, ])
+pred[pred >= 0.5] <- 'strike'
+pred[pred < 0.5] <- 'ball'
 sum(pred=='strike')/length(pred)
 
-conf_mx <- table(pred=pred, true=data$strike)
+conf_mx <- table(pred=pred, true=data_no_catchers[test, ]$strike)
 error <- (conf_mx[2] + conf_mx[3])/length(pred)
+
+conf_mx
+error
 
 #Ridge Regression
 library(glmnet)
 
-x <- model.matrix(strike ~ ., data = usable_data)[,-1]
-y <- usable_data$strike
+x <- model.matrix(strike ~ ., data = data_no_catchers)[, -1]
+y <- data_no_catchers$strike
 
 lambda <- seq(0.001, 10, length=100)
 
@@ -119,8 +128,13 @@ lasso_lam <- cv_lasso$lambda.min
 
 #Get predictions
 lasso_predict <- predict(lasso_fit, s = lasso_lam, newx = x[test, ], type = 'class')
-lasso_predict
 
+#Get coefficients
+lasso_coeff <- predict(lasso_fit, s = lasso_lam, type = 'coefficients')
+lasso_coeff
+
+non_zero_lasso_coef <- lasso_coeff[lasso_coeff != 0]
+non_zero_lasso_coef
 #Confusion matrix
 lasso_mx <- table(pred=lasso_predict, true=y[test])
 lasso_mx
