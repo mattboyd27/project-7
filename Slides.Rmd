@@ -14,15 +14,16 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ## Introduction
 
-- "Catcher framing is the art of a catcher receiving a pitch in a way that makes it more likely for an umpire to call it a strike -- whether that's turning a borderline ball into a strike, or not losing a strike to a ball due to poor framing." - MLB.com Glossery
+- "Catcher framing is the art of a catcher receiving a pitch in a way that makes it more likely for an umpire to call it a strike -- whether that's turning a borderline ball into a strike, or not losing a strike to a ball due to poor framing." - MLB.com Glossary
 
 ## Motivation
 
-- Baseball Catcher's can influence the call of a ball or strike on how they catch the ball
-- Some catcher's are better than others at this skill
+- Baseball catchers can influence the call of a ball or strike on how they catch the ball
+- Some catchers are better than others at this skill
 - Baseball teams are aware of this and are acquiring players good at this skill to win more games
 - We want to quantify the best catcher's at framing for the 2021 season
 - There are several factors that influence whether a pitch will be a strike or ball
+- Catchers getting more strikes translates to more outs, and fewer points for the opposing team
 
 ## Data
 
@@ -33,7 +34,12 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ## Variables
 
-- which variables used and why
+- We used:
+- Pitch type and pitch release speed, position, and spin rate
+- Whether or not the pitcher and batter are right or left handed
+- Count, number of outs during the at-bat, and inning number
+- Where the pitch landed
+- Whether the game was played home or away
 
 ## Example
 
