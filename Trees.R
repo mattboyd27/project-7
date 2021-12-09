@@ -10,6 +10,8 @@ library(caret)
 
 load("Data/usable_data.Rda")
 
+load("Data/pitchData.Rda")
+
 # Cross validation
 k = 3
 folds = sample(1:k, nrow(usable_data), replace = T)
@@ -111,9 +113,6 @@ varImp(model_rf) %>% arrange(desc(Overall))
 # data  = data %>%
 #   mutate(strike_prob = predict(model, data, type = "prob")[,2])
 # 
-# data %>% filter(strike == 0) %>%
-#   select(game_date, count, inning, catcher_name, home_team, release_speed, strike_prob) %>%
-#   arrange(desc(strike_prob))
 
 
 # perform Boosting
@@ -164,7 +163,7 @@ for(i in 1:k){
 # 5.7 hours
 total_time = proc.time() - time
 
-save(df_gbm_final, file = "Model-Outputs/boosting.rda")
+save(df_gbm_final, file = "Model-Outputs/boosting.Rda")
 save(df_rf, file = "Model-Outputs/random-forest.Rda")
 
 options(pillar.sigfig = 7)
@@ -179,5 +178,77 @@ df = bind_rows(df_rf %>% rename(parameter = nodesize),
   summarise(accuracy = round(mean(accuracy), 7))%>%
   arrange(desc(accuracy)) 
 
+
+data = data %>%
+  mutate(strike = as.character(strike))
+
+final_model = gbm(strike ~ ., distribution = "bernoulli", 
+                  interaction.depth = 16,
+                  n.trees = 500, shrinkage = 0.1, data = data)
+
+
+# Find video examples
+data = data %>%
+  mutate(strike_prob = predict(final_model, data, type = "response"),
+         strike = as.numeric(strike))
+
+data %>% filter(strike == 1) %>%
+  select(game_date, count, inning, catcher_name, home_team, release_speed, strike_prob, strike) %>%
+  arrange(desc(strike_prob))
+
+# Trees CV
+k = 3
+folds = sample(1:k, nrow(usable_data), replace = T)
+
+final_df_gbm = data.frame()
+
+usable_data = usable_data %>%
+  mutate(strike = as.character(strike))
+
+time = proc.time()
+for(i in 1:k){
+  print(paste("k =",i))
+  
+  train = usable_data[folds != i, ] %>%
+    select(-catcher_name)
+  
+  test = usable_data[folds == i, ] %>%
+    select(-catcher_name)
+  
+  for(trees in seq(300, 1200, 300)){
+    print(paste("trees =", trees))
+    boosting = gbm(strike ~ ., data = train, distribution = "bernoulli", 
+                   interaction.depth = 16,
+                   n.trees = trees, 
+                   shrinkage = 0.1)
+      
+    gbm = mean(as.numeric(test$strike) == (predict(boosting, test, type = "response") >= 0.5))
+      
+    final_df_gbm = final_df_gbm %>%
+      bind_rows(data.frame(model = "boosting", accuracy = gbm, trees = trees))
+    
+  }
+}
+total_time2 = proc.time() - time
+
+final_df_gbm %>%
+  group_by(trees) %>%
+  summarize(accuracy = mean(accuracy)) %>%
+  arrange(desc(accuracy))
+
+save(final_df_gbm, file = "Model-Outputs/boosting2.Rda")
+
+
+train = usable_data[folds != 1, ] %>%
+  select(-catcher_name)
+
+test = usable_data[folds == 1, ] %>%
+  select(-catcher_name)
+
+final_model2 = gbm(strike ~ ., distribution = "bernoulli", 
+                  interaction.depth = 16,
+                  n.trees = 100, shrinkage = 0.1, data = train)
+
+mean(as.numeric(test$strike) == (predict(final_model2, test, type = "response") >= 0.5))
 
 

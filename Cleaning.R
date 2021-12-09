@@ -100,6 +100,9 @@ usable_data %>%
   mutate_at(factors, as.factor) %>%
   filter(complete.cases(usable_data)) -> usable_data
 
+data = data %>% 
+  mutate_at(factors, as.factor) 
+
 
 #save as better_data, called usable_data
 save(usable_data, file='Data/usable_data.Rda')
