@@ -71,7 +71,7 @@ train %>% filter(strike == 1, count == "0-2") %>%
 
 
 #Nathan's model
-log_reg_fit <- glm(strike ~ as.factor(pitch_type) + count + plate_x + plate_z, data=data, family='binomial')
+log_reg_fit <- glm(strike ~ ., data=usable_data[train, ], family='binomial')
 summary(log_reg_fit)
 
 pred <- predict.glm(log_reg_fit, type='response')
@@ -119,7 +119,6 @@ lasso_lam <- cv_lasso$lambda.min
 
 #Get predictions
 lasso_predict <- predict(lasso_fit, s = lasso_lam, newx = x[test, ], type = 'class')
-lasso_predict
 
 #Confusion matrix
 lasso_mx <- table(pred=lasso_predict, true=y[test])
