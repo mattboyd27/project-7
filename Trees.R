@@ -242,7 +242,7 @@ data %>%
             n = n(),
             strike_100 = strikes / (n/100)) %>%
   filter(n > 2000) %>%
-  arrange(strikes)
+  arrange(desc(strike_100))
 
 ggplot() +
   geom_histogram(aes(x = usable_data$credit))
