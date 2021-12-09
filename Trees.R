@@ -12,34 +12,13 @@ load("Data/usable_data.Rda")
 
 load("Data/pitchData.Rda")
 
-# Cross validation
-k = 3
-folds = sample(1:k, nrow(usable_data), replace = T)
-rf = data.frame()
-
-for(i in 1:k) {
-  print(paste("Fold = ", i))
-  
-  train = usable_data[folds != i, ] %>%
-    select(-catcher_name)
-  
-  test = usable_data[folds == i, ] %>%
-    select(-catcher_name)
-  
-  model = randomForest(strike ~ ., data = train, mtry = round(sqrt(8)))
-  
-  accuracy = mean(predict(model, test) == test$strike)
-  
-  rf = rf %>%
-    bind_rows(data.frame(method = "rf", accuracy = accuracy))
-}
-
-
+# Cross validation for Random forest
 df_rf = data.frame()
 
 data1 = usable_data %>%
   select(-catcher_name) 
 
+# Only 70% of data because the data set is so big
 vector = createDataPartition(data1$strike, p = 0.7, list = F) %>% as.numeric()
 
 data1 = data[vector, ]
@@ -129,8 +108,8 @@ ggplot(df_gbm_final, aes(x = interaction_depth, y = accuracy, color = as.charact
  # save(df_gbm_final, file = "Model-Outputs/boosting.Rda")
 
 
-
-# Trees CV
+# Boosting with interaction depth of 16 and lambda of 0.1
+# Boosting CV on # of trees
 k = 3
 folds = sample(1:k, nrow(usable_data), replace = T)
 
@@ -191,41 +170,18 @@ final_df_gbm %>%
 
 
 
-# Final model
+# Final model on the entire data set (351,891 rows)
+load("Final-Model/final_boosting_model.Rda")
+
 data1 = usable_data %>%
   select(-catcher_name) %>%
   mutate(strike = as.character(strike))
-
-vector = createDataPartition(data1$strike, p = 0.7, list = F) %>% as.numeric()
-
-data1 = data1[vector, ] 
-
-  
 
 final_model = gbm(strike ~ ., distribution = "bernoulli", 
                   interaction.depth = 16,
                   n.trees = 500, shrinkage = 0.1, data = data1)
 
-
-
-# Find video examples
-data = data %>%
-  mutate(strike_prob = predict(final_model, data, type = "response"),
-         strike = as.numeric(as.character(strike)))
-
-data %>% filter(strike == 2, game_date != "2021-08-22") %>%
-  select(game_date, count, inning, catcher_name, home_team, release_speed, strike_prob, strike) %>%
-  arrange(strike_prob)
-
-
-# Combine all models
-df = bind_rows(df_rf %>% rename(parameter = nodesize),
-               final_df_gbm %>% rename(parameter = trees)) %>%
-  group_by(model, parameter) %>%
-  summarise(accuracy = round(mean(accuracy), 7))%>%
-  arrange(desc(accuracy)) 
-
-
+# save(final_model, file = "Final-Model/final_boosting_model.Rda")
 
 
 # Analysis
@@ -238,6 +194,7 @@ data = data %>%
     strike == 1 ~ 1 - strike_prob,
     strike == 0 ~ strike_prob * -1),
     credit2 = credit - mean(credit))
+
 
 # Leader board
 data %>%
@@ -255,6 +212,15 @@ data %>%
             strike_100 = strikes_above_avg / (n/100)) %>%
   filter(n > 2000) %>%
   arrange(strikes_above_avg)
+
+# Find video examples
+data = data %>%
+  mutate(strike_prob = predict(final_model, data, type = "response"),
+         strike = as.numeric(as.character(strike)))
+
+data %>% filter(strike == 2, game_date != "2021-08-22") %>%
+  select(game_date, count, inning, catcher_name, home_team, release_speed, strike_prob, strike) %>%
+  arrange(strike_prob)
 
 
 
