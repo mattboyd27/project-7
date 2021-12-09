@@ -1,0 +1,13 @@
+\frametitle{Example}
+\protect\hypertarget{example}{}
+\begin{itemize}
+\tightlist
+\item
+  Strike Probability by Location and Count
+\end{itemize}
+
+\begin{verbatim}
+## Using 200 trees...
+\end{verbatim}
+
+\includegraphics{Slides_files/figure-beamer/cars-1.pdf}

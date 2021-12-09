@@ -11,7 +11,7 @@ library(caret)
 load("Data/usable_data.Rda")
 
 
-load("Data/pitchData,Rda")
+load("Data/pitchData.Rda")
 
 # Little strike zone path for ggplot
 x=c(-0.95,0.95,0.95,-0.95,-0.95)
@@ -22,16 +22,20 @@ sz=data.frame(x,y)
 
 # Example model
 # Take some samples to explore
-train = data %>% slice(1000:50000)
+train = usable_data %>% slice(1000:150000) %>%
+  mutate(strike = as.character(strike)) %>%
+  select(-catcher_name)
 
 # Train initial model
-model = randomForest(strike ~ plate_x + plate_z + count, data = train, ntree = 1000)
+
+model = gbm(strike ~ plate_x + plate_z + count, 
+                     data = train, n.trees = 200, distribution = "bernoulli")
 
 
 # Create a grid of values
 grid1 = data.frame()
-x = seq(-2, 2, length.out = 150)
-y = seq(1, 5, length.out = 150)
+x = seq(-1.8, 1.8, length.out = 125)
+y = seq(1.2, 3.8, length.out = 125)
 grid = expand.grid(plate_x = x, plate_z = y)
 
 # This creates a new grid for every count factor to visualize
@@ -52,22 +56,19 @@ grid1 = grid1 %>% bind_rows(data.frame(grid, count = "0-0"),
 
 # Predict whether a pitch will be a strike or not
 grid1 = grid1 %>%
-  mutate(pred = predict(model, grid1))
+  mutate(pred = predict(model, grid1, type = "response") >= 0.5)
 
 # Visualize strikes by the count and location
 ggplot()+
   geom_point(data = grid1, aes(x = plate_x, y = plate_z, color = pred)) +
-  facet_wrap(~stand) +
-  geom_path(data = sz, aes(x = x, y = y))
-
-
-# Find the pitch that is called a strike with the lowest probability. Among observations we trained model on
-train$pred = predict(model, train, type = "prob")[,2]
-
-train %>% filter(strike == 1, count == "0-2") %>%
-  select(game_date.x, count, inning, catcher_name, home_team, pred) %>%
-  arrange(pred)
-
+  facet_wrap(~count) +
+  geom_path(data = sz, aes(x = x, y = y)) +
+  scale_color_manual(values = c("TRUE" = "red", "FALSE" = "white")) +
+  labs(color = "Predicted Strike") +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank())
 
 
 #Nathan's model

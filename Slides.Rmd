@@ -1,0 +1,102 @@
+---
+title: "A Machine Learning Approach to MLB Catcher Framing"
+author: "Nathan Hemenway and Matthew Boyd"
+date: "12/10/2021"
+output: 
+  beamer_presentation: default
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(gbm)
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Introduction
+
+- "Catcher framing is the art of a catcher receiving a pitch in a way that makes it more likely for an umpire to call it a strike -- whether that's turning a borderline ball into a strike, or not losing a strike to a ball due to poor framing." - MLB.com Glossery
+
+## Motivation
+
+- Baseball Catcher's can influence the call of a ball or strike on how they catch the ball
+- Some catcher's are better than others at this skill
+- Baseball teams are aware of this and are acquiring players good at this skill to win more games
+- We want to quantify the best catcher's at framing for the 2021 season
+- There are several factors that influence whether a pitch will be a strike or ball
+
+## Data
+
+- 2021 pitch data scraped from Baseball Savant through baseballr package
+- ~700,000 rows (each for a single pitch)
+- Wanted to look at pitches that were not swung at by the batter (called strike or ball)
+- ~350,000 rows remain
+
+## Variables
+
+- which variables used and why
+
+## Example
+
+- Strike Probability by Location and Count
+
+```{r cars, echo = FALSE, message = FALSE, cache=TRUE}
+load("Data/usable_data.Rda")
+x=c(-0.95,0.95,0.95,-0.95,-0.95)
+y=c(1.5,1.5,3.5,3.5,1.5)
+sz=data.frame(x,y)
+# Take some samples to explore
+train = usable_data %>% slice(1000:150000) %>%
+  mutate(strike = as.character(strike)) %>%
+  select(-catcher_name)
+
+# Train initial model
+
+model = gbm(strike ~ plate_x + plate_z + count, 
+                     data = train, n.trees = 200, distribution = "bernoulli")
+
+
+# Create a grid of values
+grid1 = data.frame()
+x = seq(-1.8, 1.8, length.out = 125)
+y = seq(1.2, 3.8, length.out = 125)
+grid = expand.grid(plate_x = x, plate_z = y)
+
+# This creates a new grid for every count factor to visualize
+grid1 = grid1 %>% bind_rows(data.frame(grid, count = "0-0"),
+                            data.frame(grid, count = "0-1"),
+                            data.frame(grid, count = "0-2"),
+                            data.frame(grid, count = "1-0"),
+                            data.frame(grid, count = "1-1"),
+                            data.frame(grid, count = "1-2"),
+                            data.frame(grid, count = "2-0"),
+                            data.frame(grid, count = "2-1"),
+                            data.frame(grid, count = "2-2"),
+                            data.frame(grid, count = "3-0"),
+                            data.frame(grid, count = "3-1"),
+                            data.frame(grid, count = "3-2")) %>%
+  mutate(count = as.factor(count))
+
+
+# Predict whether a pitch will be a strike or not
+grid1 = grid1 %>%
+  mutate(pred = predict(model, grid1, type = "response") >= 0.5)
+
+# Visualize strikes by the count and location
+ggplot()+
+  geom_point(data = grid1, aes(x = plate_x, y = plate_z, color = pred)) +
+  facet_wrap(~count) +
+  geom_path(data = sz, aes(x = x, y = y)) +
+  scale_color_manual(values = c("TRUE" = "red", "FALSE" = "white")) +
+  labs(color = "Predicted Strike") +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank())
+```
+
+## Slide with Plot
+
+```{r pressure}
+plot(pressure)
+```
+
