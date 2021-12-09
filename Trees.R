@@ -37,19 +37,19 @@ for(i in 1:k) {
 
 df_rf = data.frame()
 
-data = usable_data %>%
+data1 = usable_data %>%
   select(-catcher_name) 
 
-vector = createDataPartition(data$strike, p = 0.7, list = F) %>% as.numeric()
+vector = createDataPartition(data1$strike, p = 0.7, list = F) %>% as.numeric()
 
-data = data[vector, ]
+data1 = data[vector, ]
 
 # Takes 64 minutes to run 5 models
 time = proc.time()
 for(i in seq(10, 90, 20)) {
   print(paste("Nodesize = ", i))
   
-  model_rf = randomForest(strike ~ ., data = data, mtry = round(sqrt(ncol(data) - 1)),
+  model_rf = randomForest(strike ~ ., data = data1, mtry = round(sqrt(ncol(data) - 1)),
                        nodesize = i)
   
   rf = (model_rf$confusion[1,1] + model_rf$confusion[2,2]) /
@@ -70,62 +70,8 @@ ggplot(df_rf, aes(x = nodesize, y = accuracy))+
 varImp(model_rf) %>% arrange(desc(Overall))
 
 
-# mean(as.numeric(as.character(data$strike)))
-# 
-# usable_data = usable_data %>%
-#   mutate(strike_prob = predict(model, usable_data, type = "prob")[,2],
-#          predicted_strike = predict(model, usable_data),
-#          strike = as.numeric(as.character(strike)),
-#          predicted_strike = as.numeric(as.character(predicted_strike)))
-# 
-# usable_data = usable_data %>%
-#   mutate(credit = case_when(
-#     strike == 1 ~ 1 - strike_prob,
-#     strike == 0 ~ strike_prob * -1),
-#     credit2 = credit - mean(credit))
-# 
-# usable_data %>%
-#   group_by(catcher_name) %>%
-#   summarize(total =  sum(strike) / sum(predicted_strike),
-#             n = n()) %>%
-#   arrange(desc(total))
-# 
-# 
-# 
-# usable_data %>%
-#   group_by(catcher_name) %>%
-#   summarize(strikes = sum(credit2),
-#             n = n(),
-#             strike_100 = strikes / (n/100)) %>%
-#   filter(n > 2000) %>%
-#   arrange(-strike_100)
-# 
-# ggplot() +
-#   geom_histogram(aes(x = usable_data$credit))
-# 
-# 
-# factors <- c('pitch_type', 'stand', 'p_throws', 'location', 'outs_when_up', 'inning')
-# 
-# 
-# data = data %>%
-#   mutate_at(factors, as.factor) %>%
-#   drop_na(plate_x)
-# data  = data %>%
-#   mutate(strike_prob = predict(model, data, type = "prob")[,2])
-# 
 
-
-# perform Boosting
-data = data %>%
-  mutate(strike = as.character(strike))
-test = usable_data[-vector, ] %>%
-  mutate(strike = as.character(strike))
-
-
-boosting = gbm(strike ~ ., data = data, distribution = "bernoulli")
-
-mean(as.numeric(test$strike) == (predict(boosting, test, type = "response") >= 0.5))
-
+# Boosting
 k = 3
 folds = sample(1:k, nrow(usable_data), replace = T)
 
@@ -163,38 +109,19 @@ for(i in 1:k){
 # 5.7 hours
 total_time = proc.time() - time
 
-save(df_gbm_final, file = "Model-Outputs/boosting.Rda")
-save(df_rf, file = "Model-Outputs/random-forest.Rda")
-
 options(pillar.sigfig = 7)
 df_gbm_final = df_gbm %>%
   group_by(interaction_depth, lambda) %>%
   summarize(accuracy = mean(accuracy)) %>%
   arrange(desc(accuracy))
 
-df = bind_rows(df_rf %>% rename(parameter = nodesize),
-               df_gbm %>% rename(parameter = interaction_depth)) %>%
-  group_by(model, parameter) %>%
-  summarise(accuracy = round(mean(accuracy), 7))%>%
-  arrange(desc(accuracy)) 
+ggplot(df_gbm_final, aes(x = interaction_depth, y = accuracy, color = as.character(lambda))) +
+  geom_line()
 
 
-data = data %>%
-  mutate(strike = as.character(strike))
+save(df_gbm_final, file = "Model-Outputs/boosting.Rda")
+save(df_rf, file = "Model-Outputs/random-forest.Rda")
 
-final_model = gbm(strike ~ ., distribution = "bernoulli", 
-                  interaction.depth = 16,
-                  n.trees = 500, shrinkage = 0.1, data = data)
-
-
-# Find video examples
-data = data %>%
-  mutate(strike_prob = predict(final_model, data, type = "response"),
-         strike = as.numeric(strike))
-
-data %>% filter(strike == 1) %>%
-  select(game_date, count, inning, catcher_name, home_team, release_speed, strike_prob, strike) %>%
-  arrange(desc(strike_prob))
 
 # Trees CV
 k = 3
@@ -231,25 +158,104 @@ for(i in 1:k){
 }
 total_time2 = proc.time() - time
 
+# Add boosting with 500 trees
+final_df_gbm = final_df_gbm %>% 
+  bind_rows(df_gbm %>%
+              filter(interaction_depth == 16, lambda == 0.1) %>%
+              mutate(trees = 500) %>%
+              select(model, accuracy, trees))
+
+save(final_df_gbm, file = "Model-Outputs/boosting2.Rda")
 
 final_df_gbm %>%
   group_by(trees) %>%
   summarize(accuracy = mean(accuracy)) %>%
-  arrange(desc(accuracy))
+  arrange(desc(accuracy)) %>%
+  ggplot(aes(x = trees, y = accuracy)) +
+  geom_line(color = "goldenrod") +
+  theme_minimal() +
+  labs(x = "Number of Trees",
+       y = "Accuracy",
+       title = "Boosting Accuracy by # of Trees")
+
 
 save(final_df_gbm, file = "Model-Outputs/boosting2.Rda")
 
 
-train = usable_data[folds != 1, ] %>%
-  select(-catcher_name)
+# Final model
+data1 = usable_data %>%
+  select(-catcher_name) %>%
+  mutate(strike = as.character(strike))
 
-test = usable_data[folds == 1, ] %>%
-  select(-catcher_name)
+vector = createDataPartition(data1$strike, p = 0.7, list = F) %>% as.numeric()
 
-final_model2 = gbm(strike ~ ., distribution = "bernoulli", 
+data1 = data1[vector, ] 
+
+  
+
+final_model = gbm(strike ~ ., distribution = "bernoulli", 
                   interaction.depth = 16,
-                  n.trees = 100, shrinkage = 0.1, data = train)
+                  n.trees = 500, shrinkage = 0.1, data = data1)
 
-mean(as.numeric(test$strike) == (predict(final_model2, test, type = "response") >= 0.5))
+# Find video examples
+data = data %>%
+  mutate(strike_prob = predict(final_model, data, type = "response"),
+         strike = as.numeric(as.character(strike)))
+
+data %>% filter(strike == 1, game_date != "2021-08-22") %>%
+  select(game_date, count, inning, catcher_name, home_team, release_speed, strike_prob, strike) %>%
+  arrange(desc(strike_prob))
+
+
+# Combine all models
+df = bind_rows(df_rf %>% rename(parameter = nodesize),
+               final_df_gbm %>% rename(parameter = trees)) %>%
+  group_by(model, parameter) %>%
+  summarise(accuracy = round(mean(accuracy), 7))%>%
+  arrange(desc(accuracy)) 
+
+
+
+
+# Analysis
+data = data %>%
+  mutate(strike_prob = predict(final_model, data, type = "response"),
+         strike = as.numeric(as.character(strike)))
+
+data = data %>%
+  mutate(credit = case_when(
+    strike == 1 ~ 1 - strike_prob,
+    strike == 0 ~ strike_prob * -1),
+    credit2 = credit - mean(credit))
+
+data %>%
+  group_by(catcher_name) %>%
+  summarize(total =  sum(strike) / sum(predicted_strike),
+            n = n()) %>%
+  arrange(desc(total))
+
+
+
+data %>%
+  group_by(catcher_name) %>%
+  summarize(strikes = sum(credit),
+            n = n(),
+            strike_100 = strikes / (n/100)) %>%
+  filter(n > 2000) %>%
+  arrange(strikes)
+
+ggplot() +
+  geom_histogram(aes(x = usable_data$credit))
+
+
+factors <- c('pitch_type', 'stand', 'p_throws', 'location', 'outs_when_up', 'inning')
+
+
+data = data %>%
+  mutate_at(factors, as.factor) %>%
+  drop_na(plate_x)
+data  = data %>%
+  mutate(strike_prob = predict(model, data, type = "prob")[,2])
+
 
 
