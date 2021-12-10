@@ -8,6 +8,7 @@ output:
 
 ```{r setup, include=FALSE}
 library(tidyverse)
+library(glmnet)
 library(gbm)
 library(randomForest)
 knitr::opts_chunk$set(echo = FALSE)
@@ -112,12 +113,10 @@ train <- sample(1:nrow(data_no_catchers), nrow(data_no_catchers)/2)
 test <- (-train)
 
 log_reg_fit <- glm(strike ~ ., data=data_no_catchers[train, ], family='binomial')
-summary(log_reg_fit)
 
 pred <- predict.glm(log_reg_fit, type='response', newdata = data_no_catchers[test, ])
 pred[pred >= 0.5] <- 'strike'
 pred[pred < 0.5] <- 'ball'
-sum(pred=='strike')/length(pred)
 
 ```
 
@@ -126,9 +125,77 @@ conf_mx <- table(pred=pred, true=data_no_catchers[test, ]$strike)
 error <- (conf_mx[2] + conf_mx[3])/length(pred)
 
 conf_mx
-error
+1-error
 ```
 
+- The variables with significant results were:
+- Pitch type, release speed, z release position
+- Whether the batter is a lefty/righty
+- Count
+- Where the pitch landed
+- Most of the innings
+- Batter height
+- Whether it was a home game
+
+## Ridge Regression
+
+```{r}
+x <- model.matrix(strike ~ ., data = data_no_catchers)[, -1]
+y <- data_no_catchers$strike
+
+lambda <- seq(0.001, 10, length=100)
+
+#Create training and test data set
+train <- sample(1:nrow(x), nrow(x)/2)
+test <- (-train)
+ridge_reg_fit <-  glmnet(x[train,], y[train], alpha = 0, lambda = lambda, family='binomial')
+
+#Choose lambda
+cv_ridge <- cv.glmnet(x[train, ], y[train], alpha=0, family='binomial')
+lambda_choice <- cv_ridge$lambda.min
+
+#Get predictions
+ridge_predict <- predict(ridge_reg_fit, s = lambda_choice, newx = x[test, ], type = 'class')
+
+#Confusion matrix
+ridge_conf_mx <- table(pred=ridge_predict, true=y[test])
+ridge_conf_mx
+error <- (ridge_conf_mx[2] + ridge_conf_mx[3])/length(ridge_predict)
+1-error
+```
+
+## LASSO
+
+```{r, cache=TRUE}
+#LASSO
+lasso_fit <- glmnet(x[train, ], y[train], alpha = 1, lambda = lambda, family = 'binomial')
+cv_lasso <- cv.glmnet(x[train, ], y[train], alpha = 1, family='binomial')
+
+#Lambda choice
+lasso_lam <- cv_lasso$lambda.min
+
+#Get predictions
+lasso_predict <- predict(lasso_fit, s = lasso_lam, newx = x[test, ], type = 'class')
+
+#Get coefficients
+lasso_coeff <- predict(lasso_fit, s = lasso_lam, type = 'coefficients')
+
+non_zero_lasso_coef <- lasso_coeff[lasso_coeff != 0]
+non_zero_lasso_coef
+#Confusion matrix
+lasso_mx <- table(pred=lasso_predict, true=y[test])
+lasso_mx
+error <- (lasso_mx[2] + lasso_mx[3])/length(lasso_predict)
+1-error
+```
+
+- Some of the non-zero coefficients include:
+- Pitch type
+- Count
+- Outs and Inning
+- Batter height
+- Whether the game is home or away
+- Where the pitch landed
 
 ## Random Forest
 
