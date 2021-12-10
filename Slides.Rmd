@@ -106,10 +106,19 @@ ggplot()+
 
 ## Logistic Regression Model
 
-```{r, echo=FALSE}
-load("Model-Outputs/logistic-CM.Rda")
-load("Model-Outputs/logistic-error.Rda")
+```{r, echo=FALSE, cache=TRUE}
+data_no_catchers <- usable_data[, -18]
+train <- sample(1:nrow(data_no_catchers), nrow(data_no_catchers)/2)
+test <- (-train)
+log_reg_fit <- glm(strike ~ ., data=data_no_catchers[train, ], family='binomial')
+pred <- predict.glm(log_reg_fit, type='response', newdata = data_no_catchers[test, ])
+pred[pred >= 0.5] <- 'strike'
+pred[pred < 0.5] <- 'ball'
+```
 
+```{r, cache=TRUE}
+conf_mx <- table(pred=pred, true=data_no_catchers[test, ]$strike)
+error <- (conf_mx[2] + conf_mx[3])/length(pred)
 conf_mx
 1-error
 ```
@@ -126,7 +135,7 @@ conf_mx
 ## Ridge Regression
 
 
-```{r}
+```{r, cache=TRUE}
 data_no_catchers <- usable_data[, -18]
 
 x <- model.matrix(strike ~ ., data = data_no_catchers)[, -1]
@@ -155,7 +164,7 @@ error <- (ridge_conf_mx[2] + ridge_conf_mx[3])/length(ridge_predict)
 
 ## LASSO
 
-```{r, message=FALSE}
+```{r, message=FALSE, cache=TRUE}
 #LASSO
 lasso_fit <- glmnet(x[train, ], y[train], alpha = 1, lambda = lambda, family = 'binomial')
 cv_lasso <- cv.glmnet(x[train, ], y[train], alpha = 1, family='binomial')
