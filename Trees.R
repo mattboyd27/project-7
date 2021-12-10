@@ -178,8 +178,23 @@ final_df_gbm %>%
        y = "Accuracy",
        title = "Boosting Accuracy by # of Trees")
 
+final_df_gbm %>%
+  group_by(trees) %>%
+  summarize(accuracy = mean(accuracy)) %>%
+  arrange(desc(accuracy)) %>%
+  mutate(model = "boosting") %>%
+  select(model, accuracy, trees)
 
-
+df_rf %>%
+  rename(parameter = nodesize) %>%
+  bind_rows(final_df_gbm %>%
+              group_by(trees) %>%
+              summarize(accuracy = mean(accuracy)) %>%
+              arrange(desc(accuracy)) %>%
+              mutate(model = "boosting") %>%
+              select(model, accuracy, trees) %>%
+              rename(parameter = trees)) %>%
+  arrange(desc(accuracy))
 
 # Final model on the entire data set (351,891 rows)
 load("Final-Model/final_boosting_model.Rda")
@@ -232,6 +247,10 @@ data = data %>%
 data %>% filter(strike == 2, game_date != "2021-08-22") %>%
   select(game_date, count, inning, catcher_name, home_team, release_speed, strike_prob, strike) %>%
   arrange(strike_prob)
+
+
+
+
 
 
 

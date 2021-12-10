@@ -1,96 +1,22 @@
-\frametitle{Logistic Regression Model}
-\protect\hypertarget{logistic-regression-model}{}
-\tiny
+\frametitle{Model Comparison}
+\protect\hypertarget{model-comparison}{}
+\begin{itemize}
+\tightlist
+\item
+  Boosting with interaction depth of 16, shrinkage of 0.1, and 500 trees
+  has the highest accuracy
+\end{itemize}
 
 \begin{verbatim}
-##
-## Call:
-## glm(formula = strike ~ ., family = "binomial", data = data_no_catchers[train,
-##     ])
-##
-## Deviance Residuals:
-##     Min       1Q   Median       3Q      Max
-## -1.6191  -0.9878  -0.6111   1.2276   2.4930
-##
-## Coefficients:
-##                       Estimate Std. Error z value Pr(>|z|)
-## (Intercept)          1.698e+00  6.906e-01   2.459 0.013931 *
-## pitch_typeCurveball  4.183e-01  3.844e-02  10.881  < 2e-16 ***
-## pitch_typeCutter     2.955e-01  3.189e-02   9.266  < 2e-16 ***
-## pitch_typeFastball   4.516e-01  2.885e-02  15.654  < 2e-16 ***
-## pitch_typeSinker     6.161e-01  2.719e-02  22.658  < 2e-16 ***
-## pitch_typeSlider     3.748e-01  2.810e-02  13.338  < 2e-16 ***
-## release_speed       -1.049e-02  1.789e-03  -5.863 4.53e-09 ***
-## release_pos_x        3.145e-03  7.481e-03   0.420 0.674232
-## release_pos_z       -4.714e-02  1.077e-02  -4.378 1.20e-05 ***
-## standR               7.872e-02  1.151e-02   6.840 7.89e-12 ***
-## p_throwsR           -7.410e-03  3.137e-02  -0.236 0.813241
-## count0-1            -1.020e+00  1.844e-02 -55.307  < 2e-16 ***
-## count0-2            -2.027e+00  3.482e-02 -58.230  < 2e-16 ***
-## count1-0            -1.363e-01  1.684e-02  -8.093 5.83e-16 ***
-## count1-1            -7.867e-01  2.004e-02 -39.252  < 2e-16 ***
-## count1-2            -1.857e+00  2.927e-02 -63.427  < 2e-16 ***
-## count2-0             3.026e-02  2.594e-02   1.166 0.243454
-## count2-1            -5.445e-01  2.631e-02 -20.694  < 2e-16 ***
-## count2-2            -1.446e+00  2.971e-02 -48.682  < 2e-16 ***
-## count3-0             7.629e-01  3.751e-02  20.341  < 2e-16 ***
-## count3-1            -2.723e-01  3.654e-02  -7.453 9.09e-14 ***
-## count3-2            -1.019e+00  3.705e-02 -27.503  < 2e-16 ***
-## pfx_x               -5.689e-03  7.340e-03  -0.775 0.438287
-## pfx_z                9.248e-03  1.539e-02   0.601 0.547869
-## plate_x             -3.745e-02  5.911e-03  -6.336 2.36e-10 ***
-## plate_z              3.207e-02  5.398e-03   5.941 2.83e-09 ***
-## outs_when_up1       -4.850e-02  1.296e-02  -3.744 0.000181 ***
-## outs_when_up2       -6.256e-02  1.305e-02  -4.793 1.64e-06 ***
-## inning2              6.412e-02  2.194e-02   2.923 0.003468 **
-## inning3              3.118e-02  2.219e-02   1.405 0.160075
-## inning4             -5.489e-02  2.237e-02  -2.453 0.014161 *
-## inning5             -5.048e-02  2.229e-02  -2.265 0.023522 *
-## inning6             -5.659e-02  2.220e-02  -2.550 0.010780 *
-## inning7             -8.164e-02  2.234e-02  -3.655 0.000257 ***
-## inning8             -9.117e-02  2.246e-02  -4.058 4.94e-05 ***
-## inning9             -4.497e-02  2.452e-02  -1.834 0.066699 .
-## inning10            -3.334e-01  6.353e-02  -5.248 1.53e-07 ***
-## inning11            -3.946e-01  1.144e-01  -3.450 0.000560 ***
-## inning12            -1.373e-01  2.185e-01  -0.628 0.529802
-## inning13            -2.418e-01  4.818e-01  -0.502 0.615746
-## inning14             5.439e-01  9.404e-01   0.578 0.563053
-## inning15             2.678e-01  7.223e-01   0.371 0.710826
-## inning16            -8.591e+00  3.173e+01  -0.271 0.786574
-## sz_top               1.488e-01  4.140e-02   3.595 0.000324 ***
-## sz_bot              -5.141e-01  7.540e-02  -6.819 9.18e-12 ***
-## release_spin_rate    1.933e-04  2.315e-05   8.350  < 2e-16 ***
-## release_pos_y       -2.430e-02  1.235e-02  -1.968 0.049074 *
-## locationhome         5.368e-02  1.072e-02   5.009 5.46e-07 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-##
-## (Dispersion parameter for binomial family taken to be 1)
-##
-##     Null deviance: 222927  on 175944  degrees of freedom
-## Residual deviance: 205386  on 175897  degrees of freedom
-## AIC: 205482
-##
-## Number of Fisher Scoring iterations: 8
-\end{verbatim}
-
-\begin{verbatim}
-## [1] 0.06236573
-\end{verbatim}
-
-\begin{verbatim}
-##                       true
-## pred                        0      1
-##   2.06460275225367e-05      1      0
-##   2.7635904494354e-05       1      0
-##   3.5303444659751e-05       0      1
-##   6.0332329395863e-05       1      0
-##   6.19479444508851e-05      0      1
-##   6.65734495232154e-05      1      0
-##   ball                 112460  52507
-##   strike                 5256   5717
-\end{verbatim}
-
-\begin{verbatim}
-## [1] 5.683562e-06
+##       model  accuracy parameter
+## 1  boosting 0.9350484       500
+## 2  boosting 0.9347835       600
+## 3  boosting 0.9347604       300
+## 4  boosting 0.9346642       900
+## 5  boosting 0.9342408      1200
+## 6        rf 0.9315823        10
+## 7        rf 0.9308637        30
+## 8        rf 0.9304577        50
+## 9        rf 0.9298853        70
+## 10       rf 0.9295443        90
 \end{verbatim}
