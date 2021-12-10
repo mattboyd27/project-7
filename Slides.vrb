@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 \frametitle{LASSO}
 \protect\hypertarget{lasso}{}
 \begin{verbatim}
@@ -25,6 +26,29 @@
 
 \begin{verbatim}
 ## [1] 0.6726609
+=======
+\frametitle{Model Comparison}
+\protect\hypertarget{model-comparison}{}
+\begin{itemize}
+\tightlist
+\item
+  Boosting with interaction depth of 16, shrinkage of 0.1, and 500 trees
+  has the highest accuracy
+\end{itemize}
+
+\begin{verbatim}
+##       model  accuracy parameter
+## 1  boosting 0.9350484       500
+## 2  boosting 0.9347835       600
+## 3  boosting 0.9347604       300
+## 4  boosting 0.9346642       900
+## 5  boosting 0.9342408      1200
+## 6        rf 0.9315823        10
+## 7        rf 0.9308637        30
+## 8        rf 0.9304577        50
+## 9        rf 0.9298853        70
+## 10       rf 0.9295443        90
+>>>>>>> 09bb5078573388f60058ed54bcf3b1d66fe00db1
 \end{verbatim}
 
 \begin{itemize}

@@ -12,6 +12,7 @@ library(glmnet)
 library(gbm)
 library(randomForest)
 knitr::opts_chunk$set(echo = FALSE)
+load("Data/usable_data.Rda")
 ```
 
 ## Introduction
@@ -26,6 +27,7 @@ knitr::opts_chunk$set(echo = FALSE)
 - We want to quantify the best catcher's at framing for the 2021 season
 - There are several factors that influence whether a pitch will be a strike or ball
 - Catchers getting more strikes translates to more outs, and fewer runs for the opposing team
+- https://baseballsavant.mlb.com/sporty-videos?playId=273b22a4-f522-4009-87d1-14176772182d
 
 ## Data
 
@@ -49,7 +51,6 @@ knitr::opts_chunk$set(echo = FALSE)
 - Strike Probability by Location and Count
 
 ```{r cars, echo = FALSE, message = FALSE, cache=TRUE}
-load("Data/usable_data.Rda")
 x=c(-0.95,0.95,0.95,-0.95,-0.95)
 y=c(1.5,1.5,3.5,3.5,1.5)
 sz=data.frame(x,y)
@@ -166,7 +167,7 @@ error <- (ridge_conf_mx[2] + ridge_conf_mx[3])/length(ridge_predict)
 
 ## LASSO
 
-```{r, cache=TRUE}
+```{r, cache=TRUE, message=FALSE}
 #LASSO
 lasso_fit <- glmnet(x[train, ], y[train], alpha = 1, lambda = lambda, family = 'binomial')
 cv_lasso <- cv.glmnet(x[train, ], y[train], alpha = 1, family='binomial')
@@ -181,7 +182,7 @@ lasso_predict <- predict(lasso_fit, s = lasso_lam, newx = x[test, ], type = 'cla
 lasso_coeff <- predict(lasso_fit, s = lasso_lam, type = 'coefficients')
 
 non_zero_lasso_coef <- lasso_coeff[lasso_coeff != 0]
-non_zero_lasso_coef
+
 #Confusion matrix
 lasso_mx <- table(pred=lasso_predict, true=y[test])
 lasso_mx
@@ -262,3 +263,27 @@ final_df_gbm %>%
        title = "Boosting Accuracy by # of Trees")
 ```
 
+## Model Comparison
+
+- Boosting with interaction depth of 16, shrinkage of 0.1, and 500 trees has the highest accuracy
+
+```{r}
+df_rf %>%
+  rename(parameter = nodesize) %>%
+  bind_rows(final_df_gbm %>%
+              group_by(trees) %>%
+              summarize(accuracy = mean(accuracy)) %>%
+              arrange(desc(accuracy)) %>%
+              mutate(model = "boosting") %>%
+              select(model, accuracy, trees) %>%
+              rename(parameter = trees)) %>%
+  arrange(desc(accuracy))
+```
+
+## Results
+
+- To give credit to each catcher, we use this equation for every pitch:
+  - If strike: 1 - Strike Probability
+  - If ball: Strike Probability * -1
+  
+  
