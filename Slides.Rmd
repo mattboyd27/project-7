@@ -106,7 +106,6 @@ ggplot()+
 
 ## Logistic Regression Model
 
-\tiny
 ```{r, echo=FALSE}
 data_no_catchers <- usable_data[, -18]
 
@@ -167,7 +166,7 @@ error <- (ridge_conf_mx[2] + ridge_conf_mx[3])/length(ridge_predict)
 
 ## LASSO
 
-```{r, cache=TRUE, message=FALSE}
+```{r, message=FALSE}
 #LASSO
 lasso_fit <- glmnet(x[train, ], y[train], alpha = 1, lambda = lambda, family = 'binomial')
 cv_lasso <- cv.glmnet(x[train, ], y[train], alpha = 1, family='binomial')
