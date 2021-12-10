@@ -252,9 +252,9 @@ data = data %>%
   mutate(strike_prob = predict(final_model, data, type = "response"),
          strike = as.numeric(as.character(strike)))
 
-data %>% filter(strike == 1, game_date != "2021-08-22") %>%
+data %>% filter(strike == 0, game_date != "2021-08-22", catcher_name == "Salvador Perez") %>%
   select(game_date, count, inning, catcher_name, home_team, release_speed, strike_prob, strike) %>%
-  arrange(strike_prob)
+  arrange(desc(strike_prob))
 
 
 # Analysis examples
