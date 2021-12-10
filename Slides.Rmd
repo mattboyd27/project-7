@@ -372,7 +372,6 @@ data %>%
 
 ## Video Example 1
 
-
 - Strike (0.00108 strike probability)
   - https://baseballsavant.mlb.com/sporty-videos?playId=2a91c3cf-e5d9-41f9-86e4-88700536a6de
 - Austin Nola gained his team 1 - 0.00108 = 0.9982 strikes from this pitch
