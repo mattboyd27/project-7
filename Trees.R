@@ -229,7 +229,9 @@ data %>%
             pitches_caught = n(),
             strikes_aa_100 = strikes_above_avg / (pitches_caught / 100)) %>%
   filter(pitches_caught > 2000) %>%
-  arrange(desc(strikes_above_avg))
+  arrange(desc(strikes_above_avg)) %>% head(20) %>%
+  rename("Catcher Name" = catcher_name)
+
 
 data %>%
   group_by(catcher_name) %>%
@@ -239,20 +241,53 @@ data %>%
   filter(n > 2000) %>%
   arrange(strikes_above_avg)
 
+# Catcher
+data %>%
+  filter(strike == 0) %>%
+  select(game_date, count, inning, catcher_name, home_team, release_speed, strike_prob) %>%
+  arrange(desc(strike_prob)) %>% data.frame() %>% head(10)
+
 # Find video examples
 data = data %>%
   mutate(strike_prob = predict(final_model, data, type = "response"),
          strike = as.numeric(as.character(strike)))
 
-data %>% filter(strike == 2, game_date != "2021-08-22") %>%
+data %>% filter(strike == 1, game_date != "2021-08-22") %>%
   select(game_date, count, inning, catcher_name, home_team, release_speed, strike_prob, strike) %>%
   arrange(strike_prob)
 
 
+# Analysis examples
+ggplot()+
+  geom_path(data = sz, aes(x = x, y = y)) +
+  xlim(-1.8, 1.8) +
+  ylim(0.5, 5) +
+  coord_equal() +
+  geom_point(aes(x = .5, y = 2.5)) +
+  geom_text(aes(x = 0.5, y = 2.9, label = "0.9")) +
+  geom_point(aes(x = -.5, y = 4)) +
+  geom_text(aes(x = -0.5, y = 4.4, label = "0.2")) +
+  labs(title = "Credit Example") +
+  theme_minimal()+
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank()) 
 
 
 
+var = summary.gbm(final_model, plotit = F)
+
+ggplot(var, aes(x = fct_reorder(var, rel.inf), y = rel.inf, fill = rel.inf)) +
+  geom_col() +
+  coord_flip() +
+  labs(y = "Relative Influence",
+       title = "Predictor Variable Importance") +
+  theme_minimal()+
+  theme(axis.title.y = element_blank()) +
+  guides(fill = F)
 
 
+  
 
 

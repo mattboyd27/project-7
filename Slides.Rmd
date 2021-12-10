@@ -11,6 +11,8 @@ library(tidyverse)
 library(glmnet)
 library(gbm)
 library(randomForest)
+library(caret)
+library(knitr)
 knitr::opts_chunk$set(echo = FALSE)
 load("Data/usable_data.Rda")
 ```
@@ -39,7 +41,7 @@ load("Data/usable_data.Rda")
 ## Variables
 
 - We used:
-- Pitch type and pitch release speed, position, and spin rate
+- Pitch type, pitch release speed, position, and spin rate
 - Whether or not the pitcher and batter are right or left handed
 - Count, number of outs during the at-bat, and inning number
 - Where the pitch landed
@@ -234,7 +236,7 @@ ggplot(df_gbm_final, aes(x = interaction_depth, y = accuracy, color = as.charact
   theme_minimal()+
   geom_point() +
   geom_point(aes(x = 16, y = 0.935), color = "red") +
-  labs(x = "Accuracy", y = "Interactin Depth",
+  labs(y = "Accuracy", x = "Interactin Depth",
        color = "Shrinkage",
        title = "Boosting Accuracy by Interaction Depth and Shrinkage")
 ```
@@ -274,13 +276,110 @@ df_rf %>%
               mutate(model = "boosting") %>%
               select(model, accuracy, trees) %>%
               rename(parameter = trees)) %>%
-  arrange(desc(accuracy))
+  arrange(desc(accuracy)) %>%
+  kable
 ```
+
+## Variable Importance
+
+```{r, message=FALSE,echo=FALSE, cache = T, warning=FALSE}
+load("Final-Model/final_boosting_model.Rda")
+var = summary.gbm(final_model, plotit = F)
+ggplot(var, aes(x = fct_reorder(var, rel.inf), y = rel.inf, fill = rel.inf)) +
+  geom_col() +
+  coord_flip() +
+  labs(y = "Relative Influence",
+       title = "Predictor Variable Importance") +
+  theme_minimal()+
+  theme(axis.title.y = element_blank()) +
+  guides(fill = F)
+```
+
 
 ## Results
 
 - To give credit to each catcher, we use this equation for every pitch:
   - If strike: 1 - Strike Probability
   - If ball: Strike Probability * -1
+
+ 
+```{r, fig.width=2, fig.height=2}
+# Analysis examples
+ggplot()+
+  geom_path(data = sz, aes(x = x, y = y)) +
+  xlim(-1.8, 1.8) +
+  ylim(0.5, 5) +
+  coord_equal() +
+  geom_point(aes(x = .5, y = 2.5)) +
+  geom_text(aes(x = 0.6, y = 2.8, label = "0.9")) +
+  geom_point(aes(x = -.5, y = 4)) +
+  geom_text(aes(x = -0.4, y = 4.3, label = "0.2")) +
+  theme_minimal()+
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank()) 
+```
+
+- If strike: 1 - 0.9 = 0.1 | 1 - 0.2 = 0.8
+- If ball: 0.9 * -1 = -0.9 | 0.2 * -1 = -0.2
   
+## Results 
+
+\tiny
+```{r, cache= T, message=FALSE}
+load("Data/pitchData.Rda")
+# Analysis
+data = data %>%
+  mutate(strike_prob = predict(final_model, data, type = "response"),
+         strike = as.numeric(as.character(strike)))
+
+data = data %>%
+  mutate(credit = case_when(
+    strike == 1 ~ 1 - strike_prob,
+    strike == 0 ~ strike_prob * -1))
+```
+
+```{r}
+
+# Leader board
+data %>%
+  group_by(catcher_name) %>%
+  summarize(strikes_above_avg = sum(credit),
+            pitches_caught = n(),
+            strikes_aa_100 = strikes_above_avg / (pitches_caught / 100)) %>%
+  filter(pitches_caught > 2000) %>%
+  arrange(desc(strikes_above_avg)) %>% head(10) %>%
+  rename("Catcher Name" = catcher_name,
+         "Strikes Above Average" = strikes_above_avg,
+         "Pitches Caught" = pitches_caught,
+         "Strikes Above Average Per 100 Pitches Caught" = strikes_aa_100) %>% 
+  kable
+
+data %>%
+  group_by(catcher_name) %>%
+  summarize(strikes_above_avg = sum(credit),
+            pitches_caught = n(),
+            strikes_aa_100 = strikes_above_avg / (pitches_caught / 100)) %>%
+  filter(pitches_caught > 2000) %>%
+  arrange(strikes_above_avg) %>% head(10) %>%
+  rename("Catcher Name" = catcher_name,
+         "Strikes Above Average" = strikes_above_avg,
+         "Pitches Caught" = pitches_caught,
+         "Strikes Above Average Per 100 Pitches Caught" = strikes_aa_100) %>% 
+  kable
+```
+
+## Video Example 1
+
+
+- Strike (0.00108 strike probability)
+  - https://baseballsavant.mlb.com/sporty-videos?playId=2a91c3cf-e5d9-41f9-86e4-88700536a6de
+- Austin Nola gained his team 1 - 0.00108 = 0.9982 strikes from this pitch
   
+## Video Example 2
+   
+- Ball (0.99087 strike probability)
+  - https://baseballsavant.mlb.com/sporty-videos?playId=3509cf12-7e2c-4beb-88af-d3b3cc736c02
+- Kevan Smith lost his team -0.99087 strikes from this pitch
+
