@@ -1,15 +1,83 @@
 ---
-title: "Paper"
-author: "Nathan Hemenway"
-date: "12/13/2021"
+title: "A Machine Learning Approach to MLB Catcher Framing"
+author: "Nathan Hemenway and Matthew Boyd"
+date: "12/16/2021"
 output: pdf_document
 ---
 
+
+<style type="text/css">
+  body{
+  font-size: 12pt;
+}
+</style>
+
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(glmnet)
+library(gbm)
+library(randomForest)
+library(caret)
+library(knitr)
+knitr::opts_chunk$set(echo = FALSE)
+load("Data/usable_data.Rda")
+x=c(-0.95,0.95,0.95,-0.95,-0.95)
+y=c(1.5,1.5,3.5,3.5,1.5)
+sz=data.frame(x,y)
 ```
 
-Motivation:
-Catcher framing is the art of making a pitch look better than it really is. This is a skill a catcher can have to convince the umpire to call a pitch that would otherwise be called a strike a ball. If a pitch is for all intents and purposes a ball, then the batter likely will not swing at it. Then if the catcher can make it appear like a strike to the umpire, the umpire will call it a strike and bring the batter one step closer to an out. This is an obvious advantage, since the more strike outs take place, the less of opportunity the opposing team has to score runs while at-bat. 
+# Motivation
+ 
+Catcher framing is the art of making a pitch look better than it really is. This is a skill a catcher can have to convince the umpire to call a pitch that would otherwise be called a ball, a strike. If a pitch is for all intents and purposes a ball, then the batter likely will not swing at it. Then if the catcher can make it appear like a strike to the umpire, the umpire will call it a strike and bring the batter one step closer to an out. This is an obvious advantage, since the more strike outs take place, the less of opportunity the opposing team has to score runs while at-bat. 
 
 Our idea to measure this phenomenon is to use statistical machine learning methods in order to predict whether a given pitch is a strike. Given the nature of baseball, there will be pitches that are likely strikes and likely balls. If a catcher can convince the umpire to call a likely ball a strike, then that catcher is a good catcher and gets credited for that pitch. On the other hand, if the umpire calls what should have been a strike a ball, then the catcher did not do a good job and is penalized for the pitch. We sought to find out which catchers are best at pitch framing by predicting how likely the pitches thrown are to be strikes, and then seeing how well the catchers can turn them into strikes.
+
+# Methodology
+
+Our methodology is to use available data to predict whether a pitch will be a strike for all data points up until the catcher catches the ball. This will give us a good idea of whether any pitch, given a number of characteristics, will be called a strike or called a ball. From the model output, we can get a probability that every pitch will be a strike and compare that to the observed outcome of the pitch. From here we need to find out which catchers during the 2021 season excelled at getting more called strikes than their probabilities say they would.   
+
+To give credit to each catcher, we use this equation for every pitch:  
+  
+ - If observed strike: 1 - Strike Probability  
+ - If observed ball: Strike Probability * -1  
+ 
+To give an example, below is a plot of the strike zone. Umpires will try to make a call of a strike or ball if the pitch is located inside the rectangle. However, umpires don't have access to a strike zone while actually making calls themselves, so there will be some error as to whether a pitch an umpire calls a strike, is actually a strike (inside the strike zone).  
+
+The point located inside the strike zone is a theoretical location of a pitch with a 0.9 strike probability. That's quite high but it makes sense, given the pitch is in the strike zone. The pitch outside of the strike zone has a 0.2 strike probability since the pitch lands outside the strike zone. If the pitch with a 0.9 strike probability gets called a strike, the catcher will earn 1 - 0.9 = 0.1 strikes worth of credit. This is a small contribution given that the pitch is more likely to be a strike anyway. However, if the pitch gets called a ball, he will lose 0.9 strikes worth of credit which is a significant loss. That is because the catcher could have could have presented the pitch to the umpire very poorly, and he deserves to be be given credit with losing a strike for his team. If we look at the pitch out of the zone, if that pitch is an observed called strike, the catcher will receive 1 - 0.2 = 0.8 strikes worth of credit. That's a big gain for the catcher's team because he turned a pitch, more likely going to be a ball, into a strike and he should be rewarded. If that pitch is an observed ball, he will only lose -0.2 strikes worth of credit. That's small because the pitch is likely to be a ball anyway.  
+ 
+```{r, fig.width=2, fig.height=2}
+ggplot()+
+  geom_path(data = sz, aes(x = x, y = y)) +
+  xlim(-1.8, 1.8) +
+  ylim(0.5, 5) +
+  coord_equal() +
+  geom_point(aes(x = .5, y = 2.5)) +
+  geom_text(aes(x = 0.6, y = 2.8, label = "0.9")) +
+  geom_point(aes(x = -.5, y = 4)) +
+  geom_text(aes(x = -0.4, y = 4.3, label = "0.2")) +
+  theme_minimal()+
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank()) 
+```
+
+Once we have an accurate model this approach is completed for every pitch in th 2021 Major League Baseball season since we will have a strike probability and we will know the observed outcome of the pitch (called strike or ball). This way we can see which catcher's are better at presenting pitches to the umpire to benefit their team.
+
+## Data
+
+## Models
+
+### Logistic Regression
+
+### Ridge Regression
+
+### LASSO
+
+### Random Forest
+
+### Boosting
+
+# Results
+
+# Conclusion
