@@ -36,28 +36,6 @@ Our idea to measure this phenomenon is to use statistical machine learning metho
 
 Our methodology is to use available data to predict whether a pitch will be a strike for all data points up until the catcher catches the ball. This will give us a good idea of whether any pitch, given a number of characteristics, will be called a strike or called a ball. From the model output, we can get a probability that every pitch will be a strike and compare that to the observed outcome of the pitch. From here we can find out which catchers during the 2021 season excelled at getting more called strikes than their probabilities say they would.   
 
-## Data
-
-The data contains pitch characteristics for every pitch thrown during the 2021 Major League Baseball season. It was scraped from [Baseball Savant](https://baseballsavant.mlb.com/) using the [baseballr](https://billpetti.github.io/baseballr/) package. The scraped data contains ~700,000 rows with ~90 columns. We are only interested in pitches that were a called strike or a ball. This is because if the batter swung at a pitch, how the catcher presents the pitch doesn't matter. This left ~350,000 rows to model from.
-
-## Variables
-
-## Models
-
-We chose to predict whether a pitch is a strike on several models to find the model with the highest accuracy. The model chosen will be the model used on the results.
-
-### Logistic Regression
-
-### Ridge Regression
-
-### LASSO
-
-### Random Forest
-
-### Boosting
-
-# Results
-
 To give credit to each catcher, we use this equation for every pitch:  
   
  - If observed strike: 1 - Strike Probability  
@@ -86,10 +64,15 @@ ggplot()+
 
 Once we have an accurate model this approach is completed for every pitch in th 2021 Major League Baseball season since we will have a strike probability and we will know the observed outcome of the pitch (called strike or ball). This way we can see which catcher's are better at presenting pitches to the umpire to benefit their team.
 
-<<<<<<< HEAD
 ## Data
 
+The data contains pitch characteristics for every pitch thrown during the 2021 Major League Baseball season. It was scraped from [Baseball Savant](https://baseballsavant.mlb.com/) using the [baseballr](https://billpetti.github.io/baseballr/) package. The scraped data contains ~700,000 rows with ~90 columns. We are only interested in pitches that were a called strike or a ball. This is because if the batter swung at a pitch, how the catcher presents the pitch doesn't matter. This left ~350,000 rows to model from.
+
+## Variables
+
 ## Models
+
+We chose to predict whether a pitch is a strike on several models to find the model with the highest accuracy. The model chosen will be the model used on the results.
 
 ## Logistic Regression
 
@@ -159,6 +142,37 @@ The ridge regression model performed modestly with a prediction accuracy of 0.67
 
 #LASSO
 
+```{r}
+set.seed(445)
+lasso_fit <- glmnet(x[train, ], y[train], alpha = 1, lambda = lambda, family = 'binomial')
+cv_lasso <- cv.glmnet(x[train, ], y[train], alpha = 1, family='binomial')
+
+#Lambda choice
+lasso_lam <- cv_lasso$lambda.min
+
+#Get predictions
+lasso_predict <- predict(lasso_fit, s = lasso_lam, newx = x[test, ], type = 'class')
+
+#Get coefficients
+lasso_coeff <- predict(lasso_fit, s = lasso_lam, type = 'coefficients')
+lasso_coeff
+
+non_zero_lasso_coef <- lasso_coeff[lasso_coeff != 0]
+#Confusion matrix
+lasso_mx <- table(pred=lasso_predict, true=y[test])
+lasso_mx
+error <- (lasso_mx[2] + lasso_mx[3])/length(lasso_predict)
+1-error
+```
+
+The model obtained using the LASSO gave a similar prediction accuracy as the logistic and ridge regression models at 0.673. The LASSO also performs variable selection, and gave non-zero coefficients for:
+- Pitch type
+- Count
+- Outs and Inning
+- Batter height
+- Whether the game is home or away
+- Where the pitch landed
+
 
 ### Random Forest
 
@@ -166,6 +180,4 @@ The ridge regression model performed modestly with a prediction accuracy of 0.67
 
 # Results
 
-=======
->>>>>>> f7fb481d5b75d124afd1617d617d46174c005050
 # Conclusion
