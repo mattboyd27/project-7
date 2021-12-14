@@ -68,11 +68,74 @@ Once we have an accurate model this approach is completed for every pitch in th 
 
 ## Models
 
-### Logistic Regression
+## Logistic Regression
 
-### Ridge Regression
+```{r}
+set.seed(445)
+load("~/DSCI 445 proj/project-7/Data/usable_data.Rda")
+data_no_catchers <- usable_data[, -18]
 
-### LASSO
+train <- sample(1:nrow(data_no_catchers), nrow(data_no_catchers)/2)
+test <- (-train)
+
+log_reg_fit <- glm(strike ~ ., data=data_no_catchers[train, ], family='binomial')
+summary(log_reg_fit)
+
+pred <- predict.glm(log_reg_fit, type='response', newdata = data_no_catchers[test, ])
+pred[pred >= 0.5] <- 'strike'
+pred[pred < 0.5] <- 'ball'
+
+conf_mx <- table(pred=pred, true=data_no_catchers[test, ]$strike)
+error <- (conf_mx[2] + conf_mx[3])/length(pred)
+
+conf_mx
+1-error
+```
+
+We started with a logistic regression classifier using the selected variables as a preliminary model for predicting strikes. The model did not perform very impressively, with a prediction accuracy of 0.67. The summary for the logistic regression model gives which predictors are statistically significant, which included: 
+- Pitch type, release speed, z release position
+- Whether the batter is a lefty/righty
+- Count
+- Where the pitch landed
+- Most of the innings
+- Batter height
+- Whether it was a home game
+
+## Ridge Regression and LASSO
+
+#Ridge Regression
+
+```{r}
+set.seed(445)
+library(glmnet)
+
+x <- model.matrix(strike ~ ., data = data_no_catchers)[, -1]
+y <- data_no_catchers$strike
+
+lambda <- seq(0.001, 10, length=100)
+
+#Create training and test data set
+train <- sample(1:nrow(x), nrow(x)/2)
+test <- (-train)
+ridge_reg_fit <-  glmnet(x[train,], y[train], alpha = 0, lambda = lambda, family='binomial')
+
+#Choose lambda
+cv_ridge <- cv.glmnet(x[train, ], y[train], alpha=0, family='binomial')
+lambda_choice <- cv_ridge$lambda.min
+
+#Get predictions
+ridge_predict <- predict(ridge_reg_fit, s = lambda_choice, newx = x[test, ], type = 'class')
+
+#Confusion matrix
+ridge_conf_mx <- table(pred=ridge_predict, true=y[test])
+ridge_conf_mx
+error <- (ridge_conf_mx[2] + ridge_conf_mx[3])/length(ridge_predict)
+1-error
+```
+The ridge regression model performed modestly with a prediction accuracy of 0.672. This is hardly any different from the logistic regression model, so it also is not the best choice of model to be used to rank the catchers.
+
+#LASSO
+
 
 ### Random Forest
 
