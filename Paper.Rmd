@@ -34,7 +34,29 @@ Our idea to measure this phenomenon is to use statistical machine learning metho
 
 # Methodology
 
-Our methodology is to use available data to predict whether a pitch will be a strike for all data points up until the catcher catches the ball. This will give us a good idea of whether any pitch, given a number of characteristics, will be called a strike or called a ball. From the model output, we can get a probability that every pitch will be a strike and compare that to the observed outcome of the pitch. From here we need to find out which catchers during the 2021 season excelled at getting more called strikes than their probabilities say they would.   
+Our methodology is to use available data to predict whether a pitch will be a strike for all data points up until the catcher catches the ball. This will give us a good idea of whether any pitch, given a number of characteristics, will be called a strike or called a ball. From the model output, we can get a probability that every pitch will be a strike and compare that to the observed outcome of the pitch. From here we can find out which catchers during the 2021 season excelled at getting more called strikes than their probabilities say they would.   
+
+## Data
+
+The data contains pitch characteristics for every pitch thrown during the 2021 Major League Baseball season. It was scraped from [Baseball Savant](https://baseballsavant.mlb.com/) using the [baseballr](https://billpetti.github.io/baseballr/) package. The scraped data contains ~700,000 rows with ~90 columns. We are only interested in pitches that were a called strike or a ball. This is because if the batter swung at a pitch, how the catcher presents the pitch doesn't matter. This left ~350,000 rows to model from.
+
+## Variables
+
+## Models
+
+We chose to predict whether a pitch is a strike on several models to find the model with the highest accuracy. The model chosen will be the model used on the results.
+
+### Logistic Regression
+
+### Ridge Regression
+
+### LASSO
+
+### Random Forest
+
+### Boosting
+
+# Results
 
 To give credit to each catcher, we use this equation for every pitch:  
   
@@ -64,6 +86,7 @@ ggplot()+
 
 Once we have an accurate model this approach is completed for every pitch in th 2021 Major League Baseball season since we will have a strike probability and we will know the observed outcome of the pitch (called strike or ball). This way we can see which catcher's are better at presenting pitches to the umpire to benefit their team.
 
+<<<<<<< HEAD
 ## Data
 
 ## Models
@@ -143,4 +166,6 @@ The ridge regression model performed modestly with a prediction accuracy of 0.67
 
 # Results
 
+=======
+>>>>>>> f7fb481d5b75d124afd1617d617d46174c005050
 # Conclusion
