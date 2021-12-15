@@ -12,7 +12,7 @@ output: pdf_document
 }
 </style>
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, cache=T, echo=FALSE}
 library(tidyverse)
 library(glmnet)
 library(gbm)
@@ -42,13 +42,25 @@ The data contains pitch characteristics for every pitch thrown during the 2021 M
 
 ## Variables
 
-## Models
+Of the 93 variables to choose from, we chose the ones listed below. The reason we chose these variables was because we thought they could all have an impact on whether a pitch will be a called strike or not.   
+  - Pitch type, pitch release speed, release position, and spin rate  
+  - Whether or not the pitcher and batter are right or left handed  
+  - Count, number of outs during the at-bat, and inning number  
+  - Where the pitch landed  
+  - Whether the game was played home or away  
+  - How tall the batter is  
+
+
+Several variables in the data set also contained mostly NA values and those columns were ignored in modeling.
+
+
+# Models
 
 We chose to predict whether a pitch is a strike on several models to find the model with the highest accuracy. The model chosen will be the model used on the results.
 
-## Logistic Regression
+### Logistic Regression
 
-```{r}
+```{r, cache = T, warning=FALSE, message=FALSE, echo=FALSE}
 set.seed(445)
 load("Data/usable_data.Rda")
 data_no_catchers <- usable_data[, -18]
@@ -71,19 +83,19 @@ conf_mx
 ```
 
 We started with a logistic regression classifier using the selected variables as a preliminary model for predicting strikes. The model did not perform very impressively, with a prediction accuracy of 0.67. The summary for the logistic regression model gives which predictors are statistically significant, which included: 
-- Pitch type, release speed, z release position
-- Whether the batter is a lefty/righty
-- Count
-- Where the pitch landed
-- Most of the innings
-- Batter height
-- Whether it was a home game
+- Pitch type, release speed, z release position  
+- Whether the batter is a lefty/righty  
+- Count  
+- Where the pitch landed  
+- Most of the innings  
+- Batter height  
+- Whether it was a home game  
 
-## Ridge Regression and LASSO
 
-#Ridge Regression
 
-```{r}
+### Ridge Regression
+
+```{r, cache=TRUE, warning=FALSE, message=FALSE, echo=FALSE}
 set.seed(445)
 library(glmnet)
 
@@ -112,9 +124,9 @@ error <- (ridge_conf_mx[2] + ridge_conf_mx[3])/length(ridge_predict)
 ```
 The ridge regression model performed modestly with a prediction accuracy of 0.672. This is hardly any different from the logistic regression model, so it also is not the best choice of model to be used to rank the catchers.
 
-#LASSO
+### LASSO
 
-```{r}
+```{r, cache=TRUE, warning=FALSE, message=FALSE, echo=FALSE}
 set.seed(445)
 lasso_fit <- glmnet(x[train, ], y[train], alpha = 1, lambda = lambda, family = 'binomial')
 cv_lasso <- cv.glmnet(x[train, ], y[train], alpha = 1, family='binomial')
@@ -138,17 +150,110 @@ error <- (lasso_mx[2] + lasso_mx[3])/length(lasso_predict)
 ```
 
 The model obtained using the LASSO gave a similar prediction accuracy as the logistic and ridge regression models at 0.673. The LASSO also performs variable selection, and gave non-zero coefficients for:
-- Pitch type
-- Count
-- Outs and Inning
-- Batter height
-- Whether the game is home or away
-- Where the pitch landed
+  - Pitch type  
+  - Count  
+  - Outs and Inning  
+  - Batter height  
+  - Whether the game is home or away  
+  - Where the pitch landed  
 
 
 ### Random Forest
 
+The next step for modeling involved fitting the data on tree type model. The first model tested was random forest. With the same variables used above, we fit a random forest model on the data with a nodesize of 10, 30, 50, 70, and 90. We kept the number of trees the same at 500. After each model was fit, we took the out-of-bag error rate and compared the models to find the most accurate. More values for nodesize would have been considered but each model took a long time to run. Running these 5 models took about 64 minutes total.
+  
+```{r, echo=FALSE, fig.width=7, fig.height=4, cache=TRUE}
+load("Data/pitchData.Rda")
+load("Model-Outputs/random-forest.Rda")
+
+ggplot(df_rf, aes(x = nodesize, y = accuracy))+
+  geom_line() +
+  geom_point() +
+  geom_point(data = df_rf %>% 
+               filter(accuracy == max(accuracy)), aes(x = nodesize, y = accuracy), color = "red") +
+  ylim(0.925, 0.935) +
+  labs(x = "Nodesize",
+       y = "Accuracy",
+       title = "Random Forest OOB Accuracy by Nodesize") +
+  theme_minimal()
+```
+
+As you can see from the image, the random forest model with a nodesize of 10 had the highest OOB accuracy. One thing to note is how much more accurate the random forest models performed than logistic regression, ridge regression, and LASSO. This shows how powerful growing several trees are on prediction rate.
+
 ### Boosting
+
+A similar process was performed for boosting with a few adjustments. Instead of using the OOB error, we performed 3-fold cross validation to tune parameters on interaction depth and shrinkage. The reason  we only chose 3-fold cross validation was because the models would take a long time to run. We tested interaction depth's of 6, 11, and 16 with shrinkage of 0.1, 0.01, 0.001. The number of trees was set to 500 for all models. This process performed 27 models which took over 5 hours to run. Once all models were finished, we compared the cross validation accuracy with the plot below.  
+  
+```{r, echo=FALSE, fig.width=6, fig.height=2.5, warning=FALSE, message=FALSE}
+library(tidyverse)
+load("Model-Outputs/boosting.Rda")
+
+ggplot(df_gbm_final, aes(x = interaction_depth, y = accuracy, color = as.character(lambda))) +
+  geom_line() +
+  theme_minimal()+
+  geom_point() +
+  geom_point(aes(x = 16, y = 0.935), color = "red") +
+  labs(y = "Accuracy", x = "Interactin Depth",
+       color = "Shrinkage",
+       title = "Boosting Accuracy by Interaction Depth and Shrinkage")
+```
+
+The model that performed best had a interaction depth of 16 with shrinkage rate of 0.1. Now that we have the best model, it's now time to again perform 3-fold cross validation on the number of trees. We tested trees of 300, 600, 900, and 1200 with shrinkage of 0.1 and interaction depth of 16. Below show the results of the cross validation accuracy by number of trees.
+
+```{r,  fig.width=6, fig.height=3.2, echo=FALSE, message=FALSE, warning=FALSE}
+load("Model-Outputs/boosting2.Rda")
+final_df_gbm %>%
+  group_by(trees) %>%
+  summarize(accuracy = mean(accuracy)) %>%
+  arrange(desc(accuracy)) %>%
+  ggplot(aes(x = trees, y = accuracy)) +
+  geom_line(color = "goldenrod") +
+  theme_minimal() +
+  labs(x = "Number of Trees",
+       y = "Accuracy",
+       title = "Boosting Accuracy by # of Trees")
+```
+
+500 trees was used in the initial 3-fold cross validation and it shows the highest accuracy among all boosting models. 
+
+### Model Comparison
+
+We now compare all tree methods used to find the model with the highest accuracy. These models all performed at a much higher accuracy rate than logistic regression, ridge regression, and LASSO. Below are all the models sorted by highest accuracy.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(knitr)
+df_rf %>%
+  rename(parameter = nodesize) %>%
+  bind_rows(final_df_gbm %>%
+              group_by(trees) %>%
+              summarize(accuracy = mean(accuracy)) %>%
+              arrange(desc(accuracy)) %>%
+              mutate(model = "boosting") %>%
+              select(model, accuracy, trees) %>%
+              rename(parameter = trees)) %>%
+  arrange(desc(accuracy)) %>%
+  kable
+```
+
+As you can see, boosting with shrinkage rate of 0.1, interaction depth of 16, and 500 trees performed the best with a 93.5%. This model will be used on the results.
+
+### Variable Importance
+
+```{r, message=FALSE,echo=FALSE, warning=FALSE}
+library(gbm)
+load("Final-Model/final_boosting_model.Rda")
+var = summary.gbm(final_model, plotit = F)
+ggplot(var, aes(x = fct_reorder(var, rel.inf), y = rel.inf, fill = rel.inf)) +
+  geom_col() +
+  coord_flip() +
+  labs(y = "Relative Influence",
+       title = "Predictor Variable Importance") +
+  theme_minimal()+
+  theme(axis.title.y = element_blank()) +
+  guides(fill = F)
+```
+
+Looking at the variable importance for whether a pitch will be a strike on the best model, the location of the pitch is the most important (plate_x and plate_z) with the count of the pitch and height of th batter (sz_top and sz_bot). Most variables have very little importance compared to the location of the pitch. The handedness of the pitcher (righty/lefty) and the location (home/away) have the lowest importance of all variables.
 
 # Results
 
@@ -161,7 +266,7 @@ To give an example, below is a plot of the strike zone. Umpires will try to make
 
 The point located inside the strike zone is a theoretical location of a pitch with a 0.9 strike probability. That's quite high but it makes sense, given the pitch is in the strike zone. The pitch outside of the strike zone has a 0.2 strike probability since the pitch lands outside the strike zone. If the pitch with a 0.9 strike probability gets called a strike, the catcher will earn 1 - 0.9 = 0.1 strikes worth of credit. This is a small contribution given that the pitch is more likely to be a strike anyway. However, if the pitch gets called a ball, he will lose 0.9 strikes worth of credit which is a significant loss. That is because the catcher could have could have presented the pitch to the umpire very poorly, and he deserves to be be given credit with losing a strike for his team. If we look at the pitch out of the zone, if that pitch is an observed called strike, the catcher will receive 1 - 0.2 = 0.8 strikes worth of credit. That's a big gain for the catcher's team because he turned a pitch, more likely going to be a ball, into a strike and he should be rewarded. If that pitch is an observed ball, he will only lose -0.2 strikes worth of credit. That's small because the pitch is likely to be a ball anyway.  
  
-```{r, fig.width=2, fig.height=2}
+```{r, fig.width=2, fig.height=2, cache=TRUE, echo=FALSE}
 ggplot()+
   geom_path(data = sz, aes(x = x, y = y)) +
   xlim(-1.8, 1.8) +
@@ -178,6 +283,55 @@ ggplot()+
         axis.text.y = element_blank()) 
 ```
 
-Once we have an accurate model this approach is completed for every pitch in th 2021 Major League Baseball season since we will have a strike probability and we will know the observed outcome of the pitch (called strike or ball). This way we can see which catcher's are better at presenting pitches to the umpire to benefit their team.
+This approach is completed for every pitch in th 2021 Major League Baseball season since we will have a strike probability and we will know the observed outcome of the pitch (called strike or ball). This way we can see which catcher's are better at presenting pitches to the umpire to benefit their team. 
+
+```{r, message=FALSE, echo=FALSE}
+load("Data/pitchData.Rda")
+# Analysis
+data = data %>%
+  mutate(strike_prob = predict(final_model, data, type = "response"),
+         strike = as.numeric(as.character(strike)))
+
+data = data %>%
+  mutate(credit = case_when(
+    strike == 1 ~ 1 - strike_prob,
+    strike == 0 ~ strike_prob * -1))
+```
+
+```{r, echo=FALSE}
+# Leader board
+data %>%
+  group_by(catcher_name) %>%
+  summarize(strikes_above_avg = sum(credit),
+            pitches_caught = n(),
+            strikes_aa_100 = strikes_above_avg / (pitches_caught / 100)) %>%
+  filter(pitches_caught > 2000) %>%
+  arrange(desc(strikes_above_avg)) %>% head(10) %>%
+  rename("Catcher Name" = catcher_name,
+         "Strikes Above Average" = strikes_above_avg,
+         "Pitches Caught" = pitches_caught,
+         "Strikes Above Average Per 100 Pitches Caught" = strikes_aa_100) %>% 
+  kable
+
+data %>%
+  group_by(catcher_name) %>%
+  summarize(strikes_above_avg = sum(credit),
+            pitches_caught = n(),
+            strikes_aa_100 = strikes_above_avg / (pitches_caught / 100)) %>%
+  filter(pitches_caught > 2000) %>%
+  arrange(strikes_above_avg) %>% head(10) %>%
+  rename("Catcher Name" = catcher_name,
+         "Strikes Above Average" = strikes_above_avg,
+         "Pitches Caught" = pitches_caught,
+         "Strikes Above Average Per 100 Pitches Caught" = strikes_aa_100) %>% 
+  kable
+```
+
+The tables above show the top 10 framing catchers and the bottom 10 framing catchers. The top three include Max Stassi of the Los Angeles Angels, Jose Trevino of the Texas Rangers, and J.T. Realmuto of the Philidephia. The bottom three include Salvador Perez of the Kansas City Royals, Pedro Severino of the Baltimore Orioles, and Zack Collins of the Chicago White Sox. To interpret this, Max Stassi gained his team 99.2 strikes above average just from how he presents the ball to the umpire. Salvador Perez lost his team 102.6 strikes below average from how he presents the ball to the umpire. That's a difference of about 200 strikes between the bottom and top, a large difference.
+
 
 # Conclusion
+
+How catchers catch the ball seems unimportant to the naked eye. An umpire is supposed to call a strike if the pitch location is within a certain range but since umpires are human, they can be wrong. Our analysis shows that some catcher's add value to their team from the small skill of how they catch the ball. The next time you watch a baseball game, just know that how a catcher catches the ball can have a greater impact on the game than anyone would think.
+
+# References
