@@ -36,34 +36,6 @@ Our idea to measure this phenomenon is to use statistical machine learning metho
 
 Our methodology is to use available data to predict whether a pitch will be a strike for all data points up until the catcher catches the ball. This will give us a good idea of whether any pitch, given a number of characteristics, will be called a strike or called a ball. From the model output, we can get a probability that every pitch will be a strike and compare that to the observed outcome of the pitch. From here we can find out which catchers during the 2021 season excelled at getting more called strikes than their probabilities say they would.   
 
-To give credit to each catcher, we use this equation for every pitch:  
-  
- - If observed strike: 1 - Strike Probability  
- - If observed ball: Strike Probability * -1  
- 
-To give an example, below is a plot of the strike zone. Umpires will try to make a call of a strike or ball if the pitch is located inside the rectangle. However, umpires don't have access to a strike zone while actually making calls themselves, so there will be some error as to whether a pitch an umpire calls a strike, is actually a strike (inside the strike zone).  
-
-The point located inside the strike zone is a theoretical location of a pitch with a 0.9 strike probability. That's quite high but it makes sense, given the pitch is in the strike zone. The pitch outside of the strike zone has a 0.2 strike probability since the pitch lands outside the strike zone. If the pitch with a 0.9 strike probability gets called a strike, the catcher will earn 1 - 0.9 = 0.1 strikes worth of credit. This is a small contribution given that the pitch is more likely to be a strike anyway. However, if the pitch gets called a ball, he will lose 0.9 strikes worth of credit which is a significant loss. That is because the catcher could have could have presented the pitch to the umpire very poorly, and he deserves to be be given credit with losing a strike for his team. If we look at the pitch out of the zone, if that pitch is an observed called strike, the catcher will receive 1 - 0.2 = 0.8 strikes worth of credit. That's a big gain for the catcher's team because he turned a pitch, more likely going to be a ball, into a strike and he should be rewarded. If that pitch is an observed ball, he will only lose -0.2 strikes worth of credit. That's small because the pitch is likely to be a ball anyway.  
- 
-```{r, fig.width=2, fig.height=2}
-ggplot()+
-  geom_path(data = sz, aes(x = x, y = y)) +
-  xlim(-1.8, 1.8) +
-  ylim(0.5, 5) +
-  coord_equal() +
-  geom_point(aes(x = .5, y = 2.5)) +
-  geom_text(aes(x = 0.6, y = 2.8, label = "0.9")) +
-  geom_point(aes(x = -.5, y = 4)) +
-  geom_text(aes(x = -0.4, y = 4.3, label = "0.2")) +
-  theme_minimal()+
-  theme(axis.title.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.title.y = element_blank(),
-        axis.text.y = element_blank()) 
-```
-
-Once we have an accurate model this approach is completed for every pitch in th 2021 Major League Baseball season since we will have a strike probability and we will know the observed outcome of the pitch (called strike or ball). This way we can see which catcher's are better at presenting pitches to the umpire to benefit their team.
-
 ## Data
 
 The data contains pitch characteristics for every pitch thrown during the 2021 Major League Baseball season. It was scraped from [Baseball Savant](https://baseballsavant.mlb.com/) using the [baseballr](https://billpetti.github.io/baseballr/) package. The scraped data contains ~700,000 rows with ~90 columns. We are only interested in pitches that were a called strike or a ball. This is because if the batter swung at a pitch, how the catcher presents the pitch doesn't matter. This left ~350,000 rows to model from.
@@ -78,7 +50,7 @@ We chose to predict whether a pitch is a strike on several models to find the mo
 
 ```{r}
 set.seed(445)
-load("~/DSCI 445 proj/project-7/Data/usable_data.Rda")
+load("Data/usable_data.Rda")
 data_no_catchers <- usable_data[, -18]
 
 train <- sample(1:nrow(data_no_catchers), nrow(data_no_catchers)/2)
@@ -179,5 +151,33 @@ The model obtained using the LASSO gave a similar prediction accuracy as the log
 ### Boosting
 
 # Results
+
+To give credit to each catcher, we use this equation for every pitch:  
+  
+ - If observed strike: 1 - Strike Probability  
+ - If observed ball: Strike Probability * -1  
+ 
+To give an example, below is a plot of the strike zone. Umpires will try to make a call of a strike or ball if the pitch is located inside the rectangle. However, umpires don't have access to a strike zone while actually making calls themselves, so there will be some error as to whether a pitch an umpire calls a strike, is actually a strike (inside the strike zone).  
+
+The point located inside the strike zone is a theoretical location of a pitch with a 0.9 strike probability. That's quite high but it makes sense, given the pitch is in the strike zone. The pitch outside of the strike zone has a 0.2 strike probability since the pitch lands outside the strike zone. If the pitch with a 0.9 strike probability gets called a strike, the catcher will earn 1 - 0.9 = 0.1 strikes worth of credit. This is a small contribution given that the pitch is more likely to be a strike anyway. However, if the pitch gets called a ball, he will lose 0.9 strikes worth of credit which is a significant loss. That is because the catcher could have could have presented the pitch to the umpire very poorly, and he deserves to be be given credit with losing a strike for his team. If we look at the pitch out of the zone, if that pitch is an observed called strike, the catcher will receive 1 - 0.2 = 0.8 strikes worth of credit. That's a big gain for the catcher's team because he turned a pitch, more likely going to be a ball, into a strike and he should be rewarded. If that pitch is an observed ball, he will only lose -0.2 strikes worth of credit. That's small because the pitch is likely to be a ball anyway.  
+ 
+```{r, fig.width=2, fig.height=2}
+ggplot()+
+  geom_path(data = sz, aes(x = x, y = y)) +
+  xlim(-1.8, 1.8) +
+  ylim(0.5, 5) +
+  coord_equal() +
+  geom_point(aes(x = .5, y = 2.5)) +
+  geom_text(aes(x = 0.6, y = 2.8, label = "0.9")) +
+  geom_point(aes(x = -.5, y = 4)) +
+  geom_text(aes(x = -0.4, y = 4.3, label = "0.2")) +
+  theme_minimal()+
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank()) 
+```
+
+Once we have an accurate model this approach is completed for every pitch in th 2021 Major League Baseball season since we will have a strike probability and we will know the observed outcome of the pitch (called strike or ball). This way we can see which catcher's are better at presenting pitches to the umpire to benefit their team.
 
 # Conclusion
