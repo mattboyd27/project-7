@@ -335,3 +335,31 @@ The tables above show the top 10 framing catchers and the bottom 10 framing catc
 How catchers catch the ball seems unimportant to the naked eye. An umpire is supposed to call a strike if the pitch location is within a certain range but since umpires are human, they can be wrong. Our analysis shows that some catcher's add value to their team from the small skill of how they catch the ball. The next time you watch a baseball game, just know that how a catcher catches the ball can have a greater impact on the game than anyone would think.
 
 # References
+
+A. Liaw and M. Wiener (2002). Classification and Regression by randomForest. R News 2(3), 18--22
+
+“Baseball Savant: Trending MLB Players, Statcast and Visualizations.” Baseballsavant.com,
+    https://baseballsavant.mlb.com/. 
+  
+“Catcher Framing: Glossary.” MLB.com, https://www.mlb.com/glossary/statcast/catcher-framing. 
+
+Bill Petti (2021). baseballr: Functions for Acquiring and Analyzing Baseball Data.
+  https://billpetti.github.io/baseballr/, https://github.com/BillPetti/baseballr/.
+
+Brandon Greenwell, Bradley Boehmke, Jay Cunningham and GBM Developers (2020). gbm: Generalized Boosted
+  Regression Models. R package version 2.1.8. https://CRAN.R-project.org/package=gbm
+  
+Jerome Friedman, Trevor Hastie, Robert Tibshirani (2010). Regularization Paths for Generalized Linear
+  Models via Coordinate Descent. Journal of Statistical Software, 33(1), 1-22. URL
+  https://www.jstatsoft.org/v33/i01/.
+  
+Max Kuhn (2021). caret: Classification and Regression Training. R package version 6.0-90.
+  https://CRAN.R-project.org/package=caret
+
+Wickham et al., (2019). Welcome to the tidyverse. Journal of Open Source Software, 4(43), 1686,
+  https://doi.org/10.21105/joss.01686
+  
+Yihui Xie (2021). knitr: A General-Purpose Package for Dynamic Report Generation in R. R package version
+  1.36.
+  
+  
