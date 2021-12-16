@@ -1,14 +1,14 @@
 # Navigation
 
-The scraped data is in the 'Cleaning.R' file. This process takes a little bit of time to scrape all the data. We saved two data sets in that script so we could skip this process when loading in the data.
+The scraped data is in the `Cleaning.R` file. This process takes a little bit of time to scrape all the data. We saved two data sets in that script so we could skip this process when loading in the data.
 
-'Model_Exploration.R' contains code on an example analysis of a the strike zone by count. It also contains logestic regression, ridge regression, and LASSO modeling.
+`Model_Exploration.R` contains code on an example analysis of a the strike zone by count. It also contains logestic regression, ridge regression, and LASSO modeling.
 
-'Trees.R' contains all modeling code on random forest and boosting. We save results periodically throughout the code to make it easy to use in the slides and paper.
+`Trees.R` contains all modeling code on random forest and boosting. We save results periodically throughout the code to make it easy to use in the slides and paper.
 
-The slides RMarkdown code is titled 'Slides.Rmd' with the pdf as 'Slides.pdf'
+The slides RMarkdown code is titled `Slides.Rmd` with the pdf as `Slides.pdf`
 
-The paper RMarkdown code is titled 'Paper.Rmd' with the pdf as 'Paper.pdf'
+The paper RMarkdown code is titled `Paper.Rmd` with the pdf as `Paper.pdf`
 
 
 ## Description
