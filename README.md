@@ -1,9 +1,19 @@
-# project-7
-Class project for group 7 in DSCI445 @ CSU.
+# Navigation
 
-Quantifying the best framing catcher's during the 2021 MLB season.
+The scraped data is in the 'Cleaning.R' file. This process takes a little bit of time to scrape all the data. We saved two data sets in that script so we could skip this process when loading in the data.
+
+'Model_Exploration.R' contains code on an example analysis of a the strike zone by count. It also contains logestic regression, ridge regression, and LASSO modeling.
+
+'Trees.R' contains all modeling code on random forest and boosting. We save results periodically throughout the code to make it easy to use in the slides and paper.
+
+The slides RMarkdown code is titled 'Slides.Rmd' with the pdf as 'Slides.pdf'
+
+The paper RMarkdown code is titled 'Paper.Rmd' with the pdf as 'Paper.pdf'
+
 
 ## Description
+
+Quantifying the best framing catcher's during the 2021 MLB season.
 
 "Catcher framing is the art of a catcher receiving a pitch in a way that makes it more likely for an umpire to call it a strike -- whether that's turning a borderline ball into a strike, or not losing a strike to a ball due to poor framing." - [MLB.com Glossary](https://www.mlb.com/glossary/statcast/catcher-framing#:~:text=Catcher%20framing%20is%20the%20art,ball%20due%20to%20poor%20framing.) 
 
