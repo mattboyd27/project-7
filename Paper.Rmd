@@ -327,7 +327,7 @@ data %>%
   kable
 ```
 
-The tables above show the top 10 framing catchers and the bottom 10 framing catchers. The top three include Max Stassi of the Los Angeles Angels, Jose Trevino of the Texas Rangers, and J.T. Realmuto of the Philidephia. The bottom three include Salvador Perez of the Kansas City Royals, Pedro Severino of the Baltimore Orioles, and Zack Collins of the Chicago White Sox. To interpret this, Max Stassi gained his team 99.2 strikes above average just from how he presents the ball to the umpire. Salvador Perez lost his team 102.6 strikes below average from how he presents the ball to the umpire. That's a difference of about 200 strikes between the bottom and top, a large difference.
+The tables above show the top 10 framing catchers and the bottom 10 framing catchers. The top three include Max Stassi of the Los Angeles Angels, Jose Trevino of the Texas Rangers, and J.T. Realmuto of the Philidephia Phillies. The bottom three include Salvador Perez of the Kansas City Royals, Pedro Severino of the Baltimore Orioles, and Zack Collins of the Chicago White Sox. To interpret this, Max Stassi gained his team 99.2 strikes above average just from how he presents the ball to the umpire. Salvador Perez lost his team 102.6 strikes below average from how he presents the ball to the umpire. That's a difference of about 200 strikes between the bottom and top, a large difference.
 
 
 # Conclusion
