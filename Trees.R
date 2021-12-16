@@ -40,8 +40,8 @@ for(i in seq(10, 90, 20)) {
 }
 proc.time() - time
 
-# save(df_rf, file = "Model-Outputs/random-forest.Rda")
-load("Model-Outputs/random-forest.Rda")
+save(df_rf, file = "Model-Outputs/random-forest.Rda")
+# load("Model-Outputs/random-forest.Rda")
 
 ggplot(df_rf, aes(x = nodesize, y = accuracy))+
   geom_line() +
@@ -53,11 +53,6 @@ ggplot(df_rf, aes(x = nodesize, y = accuracy))+
        y = "Accuracy",
        title = "Random Forest OOB Accuracy by Nodesize") +
   theme_minimal()
-
-
-varImp(model_rf) %>% 
-  arrange(desc(Overall))
-
 
 
 # Boosting
@@ -104,7 +99,9 @@ df_gbm_final = df_gbm %>%
   summarize(accuracy = mean(accuracy)) %>%
   arrange(desc(accuracy))
 
-load("Model-Outputs/boosting.Rda")
+
+save(df_gbm_final, file = "Model-Outputs/boosting.Rda")
+# load("Model-Outputs/boosting.Rda")
 
 ggplot(df_gbm_final, aes(x = interaction_depth, y = accuracy, color = as.character(lambda))) +
   geom_line() +
@@ -116,7 +113,7 @@ ggplot(df_gbm_final, aes(x = interaction_depth, y = accuracy, color = as.charact
        y = "Boosting Accuracy by Interaction Depth and Shrinkage")
 
 
- # save(df_gbm_final, file = "Model-Outputs/boosting.Rda")
+
 
 
 # Boosting with interaction depth of 16 and lambda of 0.1
@@ -157,15 +154,15 @@ total_time2 = proc.time() - time
 
 
 # Add boosting with 500 trees
-load("Model-Outputs/boosting2.Rda")
-
 final_df_gbm = final_df_gbm %>% 
   bind_rows(df_gbm %>%
               filter(interaction_depth == 16, lambda == 0.1) %>%
               mutate(trees = 500) %>%
               select(model, accuracy, trees))
 
-# save(final_df_gbm, file = "Model-Outputs/boosting2.Rda")
+save(final_df_gbm, file = "Model-Outputs/boosting2.Rda")
+# load("Model-Outputs/boosting2.Rda")
+
 
 final_df_gbm %>%
   group_by(trees) %>%
@@ -197,8 +194,6 @@ df_rf %>%
   arrange(desc(accuracy))
 
 # Final model on the entire data set (351,891 rows)
-load("Final-Model/final_boosting_model.Rda")
-
 data1 = usable_data %>%
   select(-catcher_name) %>%
   mutate(strike = as.character(strike))
@@ -207,7 +202,8 @@ final_model = gbm(strike ~ ., distribution = "bernoulli",
                   interaction.depth = 16,
                   n.trees = 500, shrinkage = 0.1, data = data1)
 
-# save(final_model, file = "Final-Model/final_boosting_model.Rda")
+save(final_model, file = "Final-Model/final_boosting_model.Rda")
+#load("Final-Model/final_boosting_model.Rda")
 
 
 # Analysis
@@ -241,51 +237,13 @@ data %>%
   filter(n > 2000) %>%
   arrange(strikes_above_avg)
 
-# Catcher
-data %>%
-  filter(strike == 0) %>%
-  select(game_date, count, inning, catcher_name, home_team, release_speed, strike_prob) %>%
-  arrange(desc(strike_prob)) %>% data.frame() %>% head(10)
-
-# Find video examples
-data = data %>%
-  mutate(strike_prob = predict(final_model, data, type = "response"),
-         strike = as.numeric(as.character(strike)))
-
-data %>% filter(strike == 0, game_date != "2021-08-22", catcher_name == "Salvador Perez") %>%
-  select(game_date, count, inning, catcher_name, home_team, release_speed, strike_prob, strike) %>%
-  arrange(desc(strike_prob))
-
-
-# Analysis examples
-ggplot()+
-  geom_path(data = sz, aes(x = x, y = y)) +
-  xlim(-1.8, 1.8) +
-  ylim(0.5, 5) +
-  coord_equal() +
-  geom_point(aes(x = .5, y = 2.5)) +
-  geom_text(aes(x = 0.5, y = 2.9, label = "0.9")) +
-  geom_point(aes(x = -.5, y = 4)) +
-  geom_text(aes(x = -0.5, y = 4.4, label = "0.2")) +
-  labs(title = "Credit Example") +
-  theme_minimal()+
-  theme(axis.title.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.title.y = element_blank(),
-        axis.text.y = element_blank()) 
 
 
 
-var = summary.gbm(final_model, plotit = F)
 
-ggplot(var, aes(x = fct_reorder(var, rel.inf), y = rel.inf, fill = rel.inf)) +
-  geom_col() +
-  coord_flip() +
-  labs(y = "Relative Influence",
-       title = "Predictor Variable Importance") +
-  theme_minimal()+
-  theme(axis.title.y = element_blank()) +
-  guides(fill = F)
+
+
+
 
 
   

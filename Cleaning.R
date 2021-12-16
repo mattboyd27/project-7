@@ -1,9 +1,10 @@
+#setup
+devtools::install_github(repo = "BillPetti/baseballr")
+
 # Load libraries
 library(tidyverse)
 library(baseballr)
 
-#setup
-# devtools::install_github(repo = "BillPetti/baseballr")
 
 # data description
 # https://baseballsavant.mlb.com/csv-docs

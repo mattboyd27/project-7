@@ -34,7 +34,7 @@ Our idea to measure this phenomenon is to use statistical machine learning metho
 
 # Methodology
 
-Our methodology is to use available data to predict the probability a pitch will be called a strike. We can compare this probability to the decision made by the umpire to assess how well the catcher performed catcher framing. If a low probability of strike pitch was called a strike, we give the catcher a 'credit' of 1 - p(strike), and vice versa for if it is called a ball. We will run this procedure for all of the pitches grouped by each catcher. From here we can find out which catchers during the 2021 season excelled at catcher framing, by comparing how much credit they got overall.
+Our methodology is to use available data to predict the probability a pitch will be called a strike. We can compare this probability to the decision made by the umpire to assess how well the catcher performed catcher framing. If a low probability of strike pitch was called a strike, the catcher gets rewarded, and vice versa for if it is called a ball. The details of how this is performed are in the Results section below. We will run this procedure for all of the pitches grouped by each catcher. From here we can find out which catchers during the 2021 season excelled at catcher framing.
 
 ## Data
 
@@ -159,7 +159,7 @@ The model obtained using the LASSO gave a similar prediction accuracy as the log
 
 ### Random Forest
 
-The next step for modeling involved fitting the data on tree type model. The first model tested was random forest. With the same variables used above, we fit a random forest model on the data with nodesizes of 10, 30, 50, 70, and 90. We kept the number of trees constant at 500. After each model was fit, we took the out-of-bag error rate and compared the models to find the most accurate model. More values for nodesize would have been considered, but each model took a long time to run. Running these 5 models took about 64 minutes total.
+The next step for modeling involved fitting the data on tree type models. The first model tested was random forest. With the same variables used above, we fit a random forest model on the data with nodesizes of 10, 30, 50, 70, and 90. We kept the number of trees constant at 500. After each model was fit, we took the out-of-bag error rate and compared the models to find the most accurate model. More values for nodesize would have been considered, but each model took a long time to run. Running these 5 models took about 64 minutes total.
   
 ```{r, echo=FALSE, fig.width=7, fig.height=4, cache=TRUE}
 load("Data/pitchData.Rda")
