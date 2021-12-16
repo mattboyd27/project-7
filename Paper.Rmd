@@ -162,6 +162,7 @@ The model obtained using the LASSO gave a similar prediction accuracy as the log
 The next step for modeling involved fitting the data on tree type models. The first model tested was random forest. With the same variables used above, we fit a random forest model on the data with nodesizes of 10, 30, 50, 70, and 90. We kept the number of trees constant at 500. After each model was fit, we took the out-of-bag error rate and compared the models to find the most accurate model. More values for nodesize would have been considered, but each model took a long time to run. Running these 5 models took about 64 minutes total.
   
 ```{r, echo=FALSE, fig.width=7, fig.height=4, cache=TRUE}
+
 load("Data/pitchData.Rda")
 load("Model-Outputs/random-forest.Rda")
 
@@ -184,6 +185,7 @@ As you can see from the image, the random forest model with a nodesize of 10 had
 A similar process was performed for boosting, but with a few adjustments. Instead of using the out-of-bag error, we performed 3-fold cross validation to tune parameters on interaction depth and shrinkage. The reason we only chose 3-fold cross validation was because the models took a long time to run. We tested interaction depths of 6, 11, and 16, with shrinkage of 0.1, 0.01, 0.001. The number of trees was set to 500 for all models. This process performed 27 models which took over 5 hours to run. Once all models were finished, we compared the cross validation accuracy with the plot below.  
   
 ```{r, echo=FALSE, fig.width=6, fig.height=2.5, warning=FALSE, message=FALSE}
+
 library(tidyverse)
 load("Model-Outputs/boosting.Rda")
 
@@ -200,6 +202,7 @@ ggplot(df_gbm_final, aes(x = interaction_depth, y = accuracy, color = as.charact
 The model that performed best had a interaction depth of 16 with a shrinkage rate of 0.1. Now that we have the best model, it is now time to again perform 3-fold cross validation on the number of trees. We tested trees of 300, 600, 900, and 1200 with shrinkage of 0.1 and interaction depth of 16. The results of the cross validation accuracy by number of trees are shown below.
 
 ```{r,  fig.width=6, fig.height=3.2, echo=FALSE, message=FALSE, warning=FALSE}
+
 load("Model-Outputs/boosting2.Rda")
 final_df_gbm %>%
   group_by(trees) %>%
@@ -220,6 +223,7 @@ final_df_gbm %>%
 We now compare all tree methods used to find the model with the highest accuracy. These models all performed at a much higher accuracy rate than logistic regression, ridge regression, and LASSO. Below are all the models sorted by highest accuracy.
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
 library(knitr)
 df_rf %>%
   rename(parameter = nodesize) %>%
@@ -239,6 +243,7 @@ As you can see, boosting with shrinkage rate of 0.1, interaction depth of 16, an
 ### Variable Importance
 
 ```{r, message=FALSE,echo=FALSE, warning=FALSE}
+
 library(gbm)
 load("Final-Model/final_boosting_model.Rda")
 var = summary.gbm(final_model, plotit = F)
@@ -266,6 +271,7 @@ To give an example, below is a plot of the strike zone. Umpires will try to make
 The point located inside the strike zone is a theoretical location of a pitch with a probability of 0.9 of being a strike. This makes sense, since the pitch is in the strike zone. The pitch outside of the strike zone has a probability of 0.2 of being called a strike, since the pitch lands outside the strike zone. If the pitch with a probability of 0.9 of being a strike gets called a strike, the catcher will earn 1 - 0.9 = 0.1 worth of credit towards a strike. This is a small contribution since the pitch is likely a strike anyway. However, if the pitch gets called a ball, he will lose 0.9 strikes worth of credit which is a significant loss. This is because the catcher could have presented the pitch to the umpire very poorly, and deserves to be be deducted credit for losing a strike for his team. If we look at the pitch out of the zone, if that pitch is called a strike, the catcher will receive 1 - 0.2 = 0.8 strikes worth of credit. That is a big gain for the catcher's team because he turned a likely ball into a strike and should be rewarded. If that pitch is a called a ball, he will only lose -0.2 strikes worth of credit. That is small because the pitch is likely to be a ball anyway.  
  
 ```{r, fig.width=2, fig.height=2, cache=TRUE, echo=FALSE}
+
 ggplot()+
   geom_path(data = sz, aes(x = x, y = y)) +
   xlim(-1.8, 1.8) +
@@ -285,6 +291,7 @@ ggplot()+
 This approach is completed for every pitch in the 2021 Major League Baseball season since we will have a strike probability and we will know the observed outcome of the pitches (called strike or ball). This way we can see which catchers are better at catcher framing for the benefit of their team. 
 
 ```{r, message=FALSE, echo=FALSE}
+
 load("Data/pitchData.Rda")
 # Analysis
 data = data %>%
@@ -298,6 +305,7 @@ data = data %>%
 ```
 
 ```{r, echo=FALSE}
+
 # Leader board
 data %>%
   group_by(catcher_name) %>%
