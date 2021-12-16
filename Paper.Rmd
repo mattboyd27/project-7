@@ -28,17 +28,17 @@ sz=data.frame(x,y)
 
 # Motivation
  
-Catcher framing is the art of making a pitch look better than it really is. This is a skill a catcher can have to convince the umpire to call a pitch that would otherwise be called a ball, a strike. If a pitch is for all intents and purposes a ball, then the batter likely will not swing at it. Then if the catcher can make it appear like a strike to the umpire, the umpire will call it a strike and bring the batter one step closer to an out. This is an obvious advantage, since the more strike outs take place, the less of opportunity the opposing team has to score runs while at-bat. 
+Catcher framing is the art of making a pitch look better than it really is. This is a skill a catcher can have to convince the umpire to call a pitch that would otherwise be called a ball, a strike. If a pitch is for all intents and purposes a ball, then the batter will likely not swing at it. Then if the catcher can make it appear like a strike to the umpire, the umpire will call it a strike and bring the batter one step closer to an out. This is an obvious advantage, since the more strike outs take place, the less opportunity the opposing team has to score runs while at-bat. 
 
-Our idea to measure this phenomenon is to use statistical machine learning methods in order to predict whether a given pitch is a strike. Given the nature of baseball, there will be pitches that are likely strikes and likely balls. If a catcher can convince the umpire to call a likely ball a strike, then that catcher is a good catcher and gets credited for that pitch. On the other hand, if the umpire calls what should have been a strike a ball, then the catcher did not do a good job and is penalized for the pitch. We sought to find out which catchers are best at pitch framing by predicting how likely the pitches thrown are to be strikes, and then seeing how well the catchers can turn them into strikes.
+Our idea to measure this phenomenon is to use statistical machine learning methods in order to predict whether a given pitch is a strike. Given the nature of baseball, there will be pitches that are likely strikes and likely balls. If a catcher can convince the umpire to call a likely ball a strike, then that catcher is a good at catcher framing. On the other hand, if the umpire calls what should have been a strike a ball, then the catcher did a poor job at catcher framing. We sought to find out which catchers are best at catcher framing by predicting how likely the pitches are to be strikes, and then seeing how well the catchers can turn them into strikes. We wanted to see who was best at catcher framing in the 2021 season.
 
 # Methodology
 
-Our methodology is to use available data to predict whether a pitch will be a strike for all data points up until the catcher catches the ball. This will give us a good idea of whether any pitch, given a number of characteristics, will be called a strike or called a ball. From the model output, we can get a probability that every pitch will be a strike and compare that to the observed outcome of the pitch. From here we can find out which catchers during the 2021 season excelled at getting more called strikes than their probabilities say they would.   
+Our methodology is to use available data to predict the probability a pitch will be called a strike. We can compare this probability to the decision made by the umpire to assess how well the catcher performed catcher framing. If a low probability of strike pitch was called a strike, we give the catcher a 'credit' of 1 - p(strike), and vice versa for if it is called a ball. We will run this procedure for all of the pitches grouped by each catcher. From here we can find out which catchers during the 2021 season excelled at catcher framing, by comparing how much credit they got overall.
 
 ## Data
 
-The data contains pitch characteristics for every pitch thrown during the 2021 Major League Baseball season. It was scraped from [Baseball Savant](https://baseballsavant.mlb.com/) using the [baseballr](https://billpetti.github.io/baseballr/) package. The scraped data contains ~700,000 rows with ~90 columns. We are only interested in pitches that were a called strike or a ball. This is because if the batter swung at a pitch, how the catcher presents the pitch doesn't matter. This left ~350,000 rows to model from.
+The data contains pitch characteristics for every pitch thrown during the 2021 Major League Baseball season. It was scraped from [Baseball Savant](https://baseballsavant.mlb.com/) using the [baseballr](https://billpetti.github.io/baseballr/) package. The scraped data contains ~700,000 rows with ~90 columns. We are only interested in pitches that were a called strike or a ball. This is because if the batter swung at a pitch, how the catcher presents the pitch doesn't matter. Also, we are not interested in pitches where the batter hit the ball. This left ~350,000 rows to model from.
 
 ## Variables
 
@@ -51,12 +51,12 @@ Of the 93 variables to choose from, we chose the ones listed below. The reason w
   - How tall the batter is  
 
 
-Several variables in the data set also contained mostly NA values and those columns were ignored in modeling.
+Several variables in the data set also contained mostly NA values and those columns were not used in modeling.
 
 
 # Models
 
-We chose to predict whether a pitch is a strike on several models to find the model with the highest accuracy. The model chosen will be the model used on the results.
+We chose to predict whether a pitch is a strike on several preliminary models to find the model with the highest prediction accuracy. The model chosen will be the model used to find the results.
 
 ### Logistic Regression
 
@@ -90,7 +90,6 @@ We started with a logistic regression classifier using the selected variables as
 - Most of the innings  
 - Batter height  
 - Whether it was a home game  
-
 
 
 ### Ridge Regression
@@ -160,7 +159,7 @@ The model obtained using the LASSO gave a similar prediction accuracy as the log
 
 ### Random Forest
 
-The next step for modeling involved fitting the data on tree type model. The first model tested was random forest. With the same variables used above, we fit a random forest model on the data with a nodesize of 10, 30, 50, 70, and 90. We kept the number of trees the same at 500. After each model was fit, we took the out-of-bag error rate and compared the models to find the most accurate. More values for nodesize would have been considered but each model took a long time to run. Running these 5 models took about 64 minutes total.
+The next step for modeling involved fitting the data on tree type model. The first model tested was random forest. With the same variables used above, we fit a random forest model on the data with nodesizes of 10, 30, 50, 70, and 90. We kept the number of trees constant at 500. After each model was fit, we took the out-of-bag error rate and compared the models to find the most accurate model. More values for nodesize would have been considered, but each model took a long time to run. Running these 5 models took about 64 minutes total.
   
 ```{r, echo=FALSE, fig.width=7, fig.height=4, cache=TRUE}
 load("Data/pitchData.Rda")
@@ -178,11 +177,11 @@ ggplot(df_rf, aes(x = nodesize, y = accuracy))+
   theme_minimal()
 ```
 
-As you can see from the image, the random forest model with a nodesize of 10 had the highest OOB accuracy. One thing to note is how much more accurate the random forest models performed than logistic regression, ridge regression, and LASSO. This shows how powerful growing several trees are on prediction rate.
+As you can see from the image, the random forest model with a nodesize of 10 had the highest out-of-bag accuracy. One thing to note is how much more accurate the random forest models performed than logistic regression, ridge regression, and LASSO. This shows how powerful growing several trees are on prediction accuracy.
 
 ### Boosting
 
-A similar process was performed for boosting with a few adjustments. Instead of using the OOB error, we performed 3-fold cross validation to tune parameters on interaction depth and shrinkage. The reason  we only chose 3-fold cross validation was because the models would take a long time to run. We tested interaction depth's of 6, 11, and 16 with shrinkage of 0.1, 0.01, 0.001. The number of trees was set to 500 for all models. This process performed 27 models which took over 5 hours to run. Once all models were finished, we compared the cross validation accuracy with the plot below.  
+A similar process was performed for boosting, but with a few adjustments. Instead of using the out-of-bag error, we performed 3-fold cross validation to tune parameters on interaction depth and shrinkage. The reason we only chose 3-fold cross validation was because the models took a long time to run. We tested interaction depths of 6, 11, and 16, with shrinkage of 0.1, 0.01, 0.001. The number of trees was set to 500 for all models. This process performed 27 models which took over 5 hours to run. Once all models were finished, we compared the cross validation accuracy with the plot below.  
   
 ```{r, echo=FALSE, fig.width=6, fig.height=2.5, warning=FALSE, message=FALSE}
 library(tidyverse)
@@ -198,7 +197,7 @@ ggplot(df_gbm_final, aes(x = interaction_depth, y = accuracy, color = as.charact
        title = "Boosting Accuracy by Interaction Depth and Shrinkage")
 ```
 
-The model that performed best had a interaction depth of 16 with shrinkage rate of 0.1. Now that we have the best model, it's now time to again perform 3-fold cross validation on the number of trees. We tested trees of 300, 600, 900, and 1200 with shrinkage of 0.1 and interaction depth of 16. Below show the results of the cross validation accuracy by number of trees.
+The model that performed best had a interaction depth of 16 with a shrinkage rate of 0.1. Now that we have the best model, it is now time to again perform 3-fold cross validation on the number of trees. We tested trees of 300, 600, 900, and 1200 with shrinkage of 0.1 and interaction depth of 16. The results of the cross validation accuracy by number of trees are shown below.
 
 ```{r,  fig.width=6, fig.height=3.2, echo=FALSE, message=FALSE, warning=FALSE}
 load("Model-Outputs/boosting2.Rda")
@@ -214,7 +213,7 @@ final_df_gbm %>%
        title = "Boosting Accuracy by # of Trees")
 ```
 
-500 trees was used in the initial 3-fold cross validation and it shows the highest accuracy among all boosting models. 
+500 trees were used in the initial 3-fold cross validation and it shows the highest accuracy among all boosting models. 
 
 ### Model Comparison
 
@@ -235,7 +234,7 @@ df_rf %>%
   kable
 ```
 
-As you can see, boosting with shrinkage rate of 0.1, interaction depth of 16, and 500 trees performed the best with a 93.5%. This model will be used on the results.
+As you can see, boosting with shrinkage rate of 0.1, interaction depth of 16, and 500 trees performed the best with a 93.5% prediction accuracy. This model will be used to find results of how the catchers rank for the skill of catcher framing.
 
 ### Variable Importance
 
@@ -253,18 +252,18 @@ ggplot(var, aes(x = fct_reorder(var, rel.inf), y = rel.inf, fill = rel.inf)) +
   guides(fill = F)
 ```
 
-Looking at the variable importance for whether a pitch will be a strike on the best model, the location of the pitch is the most important (plate_x and plate_z) with the count of the pitch and height of th batter (sz_top and sz_bot). Most variables have very little importance compared to the location of the pitch. The handedness of the pitcher (righty/lefty) and the location (home/away) have the lowest importance of all variables.
+Looking at the variable importance for whether a pitch will be a strike on the best model, the location of the pitch is the most important (plate_x and plate_z), and also the count of the pitch and height of the batter (sz_top and sz_bot). Most variables have very little importance compared to the location of the pitch. The handedness of the pitcher (righty/lefty) and the location (home/away) have the lowest importance of all variables.
 
 # Results
 
 To give credit to each catcher, we use this equation for every pitch:  
   
- - If observed strike: 1 - Strike Probability  
- - If observed ball: Strike Probability * -1  
+ - If called a strike: 1 - Strike Probability  
+ - If called a ball: Strike Probability * -1  
  
-To give an example, below is a plot of the strike zone. Umpires will try to make a call of a strike or ball if the pitch is located inside the rectangle. However, umpires don't have access to a strike zone while actually making calls themselves, so there will be some error as to whether a pitch an umpire calls a strike, is actually a strike (inside the strike zone).  
+To give an example, below is a plot of the strike zone. Umpires will try to make a call of a strike or ball if the pitch is located inside the rectangle (strike zone). However, umpires do not have access to a strike zone while actually making calls, so there will be some error as to whether a pitch an umpire calls a strike is actually a strike (inside the strike zone).  
 
-The point located inside the strike zone is a theoretical location of a pitch with a 0.9 strike probability. That's quite high but it makes sense, given the pitch is in the strike zone. The pitch outside of the strike zone has a 0.2 strike probability since the pitch lands outside the strike zone. If the pitch with a 0.9 strike probability gets called a strike, the catcher will earn 1 - 0.9 = 0.1 strikes worth of credit. This is a small contribution given that the pitch is more likely to be a strike anyway. However, if the pitch gets called a ball, he will lose 0.9 strikes worth of credit which is a significant loss. That is because the catcher could have could have presented the pitch to the umpire very poorly, and he deserves to be be given credit with losing a strike for his team. If we look at the pitch out of the zone, if that pitch is an observed called strike, the catcher will receive 1 - 0.2 = 0.8 strikes worth of credit. That's a big gain for the catcher's team because he turned a pitch, more likely going to be a ball, into a strike and he should be rewarded. If that pitch is an observed ball, he will only lose -0.2 strikes worth of credit. That's small because the pitch is likely to be a ball anyway.  
+The point located inside the strike zone is a theoretical location of a pitch with a probability of 0.9 of being a strike. This makes sense, since the pitch is in the strike zone. The pitch outside of the strike zone has a probability of 0.2 of being called a strike, since the pitch lands outside the strike zone. If the pitch with a probability of 0.9 of being a strike gets called a strike, the catcher will earn 1 - 0.9 = 0.1 worth of credit towards a strike. This is a small contribution since the pitch is likely a strike anyway. However, if the pitch gets called a ball, he will lose 0.9 strikes worth of credit which is a significant loss. This is because the catcher could have presented the pitch to the umpire very poorly, and deserves to be be deducted credit for losing a strike for his team. If we look at the pitch out of the zone, if that pitch is called a strike, the catcher will receive 1 - 0.2 = 0.8 strikes worth of credit. That is a big gain for the catcher's team because he turned a likely ball into a strike and should be rewarded. If that pitch is a called a ball, he will only lose -0.2 strikes worth of credit. That is small because the pitch is likely to be a ball anyway.  
  
 ```{r, fig.width=2, fig.height=2, cache=TRUE, echo=FALSE}
 ggplot()+
@@ -283,7 +282,7 @@ ggplot()+
         axis.text.y = element_blank()) 
 ```
 
-This approach is completed for every pitch in th 2021 Major League Baseball season since we will have a strike probability and we will know the observed outcome of the pitch (called strike or ball). This way we can see which catcher's are better at presenting pitches to the umpire to benefit their team. 
+This approach is completed for every pitch in the 2021 Major League Baseball season since we will have a strike probability and we will know the observed outcome of the pitches (called strike or ball). This way we can see which catchers are better at catcher framing for the benefit of their team. 
 
 ```{r, message=FALSE, echo=FALSE}
 load("Data/pitchData.Rda")
@@ -327,12 +326,12 @@ data %>%
   kable
 ```
 
-The tables above show the top 10 framing catchers and the bottom 10 framing catchers. The top three include Max Stassi of the Los Angeles Angels, Jose Trevino of the Texas Rangers, and J.T. Realmuto of the Philidephia Phillies. The bottom three include Salvador Perez of the Kansas City Royals, Pedro Severino of the Baltimore Orioles, and Zack Collins of the Chicago White Sox. To interpret this, Max Stassi gained his team 99.2 strikes above average just from how he presents the ball to the umpire. Salvador Perez lost his team 102.6 strikes below average from how he presents the ball to the umpire. That's a difference of about 200 strikes between the bottom and top, a large difference.
+The tables above show the top 10 and bottom 10 catchers in terms of catcher framing ability. The top three include Max Stassi of the Los Angeles Angels, Jose Trevino of the Texas Rangers, and J.T. Realmuto of the Philidelphia Phillies. The bottom three include Salvador Perez of the Kansas City Royals, Pedro Severino of the Baltimore Orioles, and Zack Collins of the Chicago White Sox. To interpret this, Max Stassi gained his team 99.2 strikes above average just from how he presents the ball to the umpire. Salvador Perez lost his team 102.6 strikes below average from how he presents the ball to the umpire. That's a difference of about 200 strikes between the bottom and top, a large difference. We felt it was more important to analyze the gross amount of credit a catcher earns, instead of average per pitch, since this leaves out catchers with very few pitches thrown to them.
 
 
 # Conclusion
 
-How catchers catch the ball seems unimportant to the naked eye. An umpire is supposed to call a strike if the pitch location is within a certain range but since umpires are human, they can be wrong. Our analysis shows that some catcher's add value to their team from the small skill of how they catch the ball. The next time you watch a baseball game, just know that how a catcher catches the ball can have a greater impact on the game than anyone would think.
+How catchers catch the ball seems unimportant to the naked eye. An umpire is supposed to call a strike if the pitch location is within the strike zone, but since umpires are human, they can be wrong. Our analysis shows that some catchers add value to their team from the skill of how they catch the ball. The next time you watch a baseball game, just know that how a catcher catches the ball can have a greater impact on the game than anyone would think.
 
 # References
 
