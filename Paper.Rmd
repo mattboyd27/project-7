@@ -356,8 +356,8 @@ Jerome Friedman, Trevor Hastie, Robert Tibshirani (2010). Regularization Paths f
 Max Kuhn (2021). caret: Classification and Regression Training. R package version 6.0-90.
   https://CRAN.R-project.org/package=caret
 
-Wickham et al., (2019). Welcome to the tidyverse. Journal of Open Source Software, 4(43), 1686,
-  https://doi.org/10.21105/joss.01686
+Wickham et al., (2019). Welcome to the tidyverse. Journal of Open Source Software, 4(43), 1686,  
+        https://doi.org/10.21105/joss.01686
   
 Yihui Xie (2021). knitr: A General-Purpose Package for Dynamic Report Generation in R. R package version
   1.36.
